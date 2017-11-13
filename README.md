@@ -1,4 +1,4 @@
-# Web app heavy option made with React & Node.js
+# Web app heavy option made with React & Node.js, ES6 and serverside rendering
 
 Followed this tutorial: https://codeburst.io/headache-free-ssr-react-js-node-js-and-es6-app-boilerplate-tutorial-267f7be0b7b5
 
