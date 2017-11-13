@@ -4,7 +4,7 @@ Followed this tutorial: https://codeburst.io/headache-free-ssr-react-js-node-js-
 
 ### Install
 
-* `npm i` - install dependencies
+* `npm i` - install dependencies (node_modules folder)
 
 ### Run in dev
 
