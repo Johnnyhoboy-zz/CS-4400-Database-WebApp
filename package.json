@@ -36,11 +36,14 @@
   },
   "dependencies": {
     "cross-env": "^5.1.1",
+    "css-loader": "^0.28.7",
     "express": "^4.16.2",
     "react": "^15.6.2",
     "react-data-grid": "^2.0.76",
     "react-dom": "^15.6.2",
-    "react-table": "^6.7.4"
+    "react-table": "^6.7.4",
+    "react-table-select": "^0.2.7",
+    "style-loader": "^0.19.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",

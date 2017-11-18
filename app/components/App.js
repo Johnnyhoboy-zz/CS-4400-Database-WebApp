@@ -1,5 +1,6 @@
 import ReactDOM from 'react-dom';
-var ReactDataGrid = require('react-data-grid');
+import ReactTable from 'react-table';
+import "react-table/react-table.css";
 
 //
 // The following variables define the entire screen components
@@ -123,58 +124,32 @@ var PassengerFlowReport = React.createClass({
 
 var StationManagement = React.createClass({
 	getInitialState : function() {
-	    this._columns = [
-	      { key: 'name', name: 'Station Name', sortable: true },
-	      { key: 'id', name: 'Stop ID', sortable: true },
-	      { key: 'fare', name: 'Fare', sortable: true },
-	      { key: 'status', name: 'Status', sortable: true} ];
-
-	    let originalRows = this.createRows();
-	    let rows = originalRows.slice(0);
-	    // Store the original rows array, and make a copy that can be used for modifying eg.filtering, sorting
-	    return { originalRows, rows };
-  	},
-  	createRows() {
-	    let rows = [];
-	    for (let i = 1; i < 5; i++) {
-	      rows.push({
-	      	name: 'Station ' + i,
-	        id: i,
-	        fare: i,
-	        status: 'open'
-	      });
-	    }
-	    return rows
-	  },
-
-  rowGetter(i) {
-    return this.state.rows[i];
-  },
-  handleGridSort(sortColumn, sortDirection) {
-    const comparer = (a, b) => {
-      if (sortDirection === 'ASC') {
-        return (a[sortColumn] > b[sortColumn]) ? 1 : -1;
-      } else if (sortDirection === 'DESC') {
-        return (a[sortColumn] < b[sortColumn]) ? 1 : -1;
-      }
-    };
-
-    const rows = sortDirection === 'NONE' ? this.state.originalRows.slice(0) : this.state.rows.sort(comparer);
-
-    this.setState({ rows });
-  },
-  render : function() { return (
-    	<div class="StationManagement">
-	    	<p>Station Management</p>
-	    	<button onClick={this.nViewStation}>Go To View Station</button>
-	    	<button onClick={this.nCreateStation}>Go To Create Station</button>
-	    	<button onClick={this.nAdminFunctionality}>Back</button>
-	    	<ReactDataGrid
-	    		onGridSort={this.handleGridSort}
-		        columns={this._columns}
-		        rowGetter={this.rowGetter}
-		        rowsCount={this.state.rows.length} />
-    	</div>
+		var oColumns = [
+			{ Header: 'Station Name', accessor: 'name' },
+			{ Header: 'Stop ID', accessor: 'id' },
+			{ Header: 'Fare', accessor: 'fare' },
+			{ Header: 'Status', accessor: 'status'}
+		];
+		var oData = [
+			{ name: 'Sam AA', id: '1', fare: '123', status: 'open' }, 
+			{ name: 'Ryan AB', id: '2', fare: '10', status: 'closed' }
+		];
+		return { columns: oColumns, data: oData };
+	},
+  	render : function() { 
+  		return (
+	    	<div class="StationManagement">
+		    	<h1>Station Listing</h1>
+		    	<ReactTable
+				    data={this.state.data}
+				    columns={this.state.columns}
+				    defaultPageSize={10}
+				  />	
+		    	<button onClick={this.nViewStation}>View Station</button>
+		    	<button onClick={this.nCreateStation}>Create Station</button>
+		    	<br />
+		    	<button onClick={this.nAdminFunctionality}>Back To Admin Functionality</button>
+	    	</div>
     	); 
 	},
 	nViewStation : function() { showViewStation(); },
