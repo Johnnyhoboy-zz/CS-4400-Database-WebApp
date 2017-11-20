@@ -150,7 +150,7 @@ var StationManagement = React.createClass({
 		    	<br />
 		    	<button onClick={this.nAdminFunctionality}>Back To Admin Functionality</button>
 	    	</div>
-    	); 
+    	);
 	},
 	nViewStation : function() { showViewStation(); },
 	nCreateStation : function() { showCreateStation(); },
@@ -160,8 +160,14 @@ var StationManagement = React.createClass({
 var ViewStation = React.createClass({
     render : function() { return (
     	<div class="ViewStation">
-	    	<p>View Station</p>
-	    	<button onClick={this.nStationManagement}>Back</button>
+	    	<h1>StationName (Stop StationID)</h1><br />
+	    	<p>Fare</p>
+	    	<input type="text" />
+	    	<button>Update Fare</button>
+	    	<p>Nearest Intersection: Station|Not available for Train</p>
+	    	<input type="checkbox" /><label>Open Station (When checked, passengers can enter at this station)</label>
+	    	<br />
+	    	<br /><button onClick={this.nStationManagement}>Back to Station Management</button>
     	</div>
     	); 
 	},
@@ -171,8 +177,17 @@ var ViewStation = React.createClass({
 var CreateStation = React.createClass({
 	render : function() { return (
     	<div class="CreateStation">
-	    	<p>Create Station</p>
-	    	<button onClick={this.nStationManagement}>Back</button>
+	    	<div><label>Station Name   </label><input type="text" /></div>
+	    	<div><label>Stop ID   </label><input type="text" /></div>
+	    	<div><label>Entry Fare   $</label><input type="text" /></div><br />
+	    	<p>Station Type</p>
+	    	<form>
+	    		<input type="radio" name="stationtype" value="bus" /><label>Bus</label><br />
+	    		<label>Nearest Intersection</label><input type="text" /><br />
+	    		<input type="radio" name="stationtype" vaue="train" /><label>Train</label>
+	    	</form>
+	    	<button>Create Station</button>
+	    	<br /><br /><button onClick={this.nStationManagement}>Back to Station Management</button>
     	</div>
     	); 
 	},
