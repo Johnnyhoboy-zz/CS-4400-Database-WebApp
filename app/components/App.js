@@ -10,10 +10,20 @@ import "react-table/react-table.css";
 var LogIn = React.createClass({
     render : function() { return (
     	<div class="LogIn">
-	    	<p>Log In</p>
-	    	<button onClick={this.nRegistration}>Go To Registration</button>
+    		<center>
+	    	<h1>Log In</h1>
+	    	<form>
+			  Username:<br />
+			  <input type="text" name="user" /><br />
+			  Password:<br />
+			  <input type="text" name="pass" /><br />
+	    	</form>
+	        <br />
+	    	<button>Login</button>
+	    	<button onClick={this.nRegistration}>Register</button>
 	    	<button onClick={this.nPassengerFunctionality}>Go To Passenger Functionality</button>
 	    	<button onClick={this.nAdminFunctionality}>Go To Admin Functionality</button>
+	    	</center>
     	</div>
     	); 
 	},
@@ -25,8 +35,31 @@ var LogIn = React.createClass({
 var Registration = React.createClass({
     render : function() { return (
     	<div class="Registration">
-	    	<p>Registration</p>
-	    	<button onClick={this.nLogin}>Back</button>
+    		<center>
+	    	<h1>Registration</h1>
+	    	<hr />
+	    	 <form>
+			  Username:
+			  <input type="text" name="user" /><br />
+			  Email:
+			  <input type="text" name="email" /><br />
+			  Password:
+			  <input type="text" name="pass" /><br />
+			  Confirm Password:
+			  <input type="text" name="confirm" /><br />
+			  <h3>Breeze Card</h3>
+			  <input type="radio" name="useBreezeCard" /><label>Use my existing Breeze Card</label><br />
+			  Card Number:
+			  <input type="text" name="cardNumber" /><br />
+			  <input type="radio" name="getNewCard" /><label>Get a new Breeze Card</label><br />
+	    	</form>
+	    	<hr />
+	        <br />
+
+	    	<button>Create Account</button>
+	    	<button onClick={this.nLogin}>Back</button> 
+	    	</center>
+
     	</div>
     	); 
 	},
@@ -73,12 +106,14 @@ var TripHistory = React.createClass({
 var AdminFunctionality = React.createClass({
     render : function() { return (
     	<div class="AdminFunctionality">
-	    	<p>Admin Functionality</p>
-	    	<button onClick={this.nBreezecardManagement}>Go To Breezecard Management</button>
-	    	<button onClick={this.nStationManagement}>Go To Station Management</button>
-	    	<button onClick={this.nPassengerFlowReport}>Go To PassengerFlowReport</button>
-	    	<button onClick={this.nSuspendedCards}>Go To Suspended Cards</button>
+    		<center>
+	    	<h1>Admin Functionality</h1>
+	    	<button onClick={this.nBreezecardManagement}>Go To Breezecard Management</button> <br /> <br />
+	    	<button onClick={this.nStationManagement}>Go To Station Management</button> <br /> <br />
+	    	<button onClick={this.nPassengerFlowReport}>Go To PassengerFlowReport</button> <br /> <br />
+	    	<button onClick={this.nSuspendedCards}>Go To Suspended Cards</button> <br /> <br />
 	    	<button onClick={this.nLogin}>Back</button>
+	    	</center>
     	</div>
     	);
 	},
@@ -101,13 +136,37 @@ var BreezecardManagement = React.createClass({
 });
 
 var SuspendedCards = React.createClass({
-    render : function() { return (
-    	<div class="SuspendedCards">
-	    	<p>Suspended Cards</p>
-	    	<button onClick={this.nAdminFunctionality}>Back</button>
-    	</div>
-    	); 
-	},
+	getInitialState : function() {
+			var oColumns = [
+				{ Header: 'Card #', accessor: 'cardNumber' },
+				{ Header: 'New Owner', accessor: 'newOwner' },
+				{ Header: 'Date Suspended', accessor: 'dateSuspended' },
+				{ Header: 'Previous Owner', accessor: 'prevOwner'}
+			];
+			var oData = [
+				{ cardNumber: '1446 2121 0808 1229', newOwner: 'John H', dateSuspended: '11-15-2017 4:20pm', prevOwner: 'Alex C' }, 
+				{ cardNumber: '1581 9910 0010 4404', newOwner: 'Ryan A', dateSuspended: '11-20-2017 4:20am', prevOwner: 'Sam C' }
+			];
+			return { columns: oColumns, data: oData };
+		},
+	  	render : function() { 
+	  		return (
+		    	<div class="StationManagement">
+			    	<h1>Suspended Cards</h1>
+			    	<ReactTable
+					    data={this.state.data}
+					    columns={this.state.columns}
+					    defaultPageSize={10}
+					  /><br />
+					 <center>
+			    	<button>Assign Selected Card to New Owner</button><br /><br />
+			    	<button>Assign Selected Card to Previous Owner</button><br /><br />
+			    	<br />
+			    	<button onClick={this.nAdminFunctionality}>Back To Admin Functionality</button>
+		    		</center>
+		    	</div>
+	    	);
+		},
 	nAdminFunctionality : function() { showAdminFunctionality(); }
 });
 
