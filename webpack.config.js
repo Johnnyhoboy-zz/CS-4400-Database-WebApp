@@ -33,4 +33,9 @@ module.exports = {
             inject: 'body',
         }),
     ],
+    node: {
+        fs: 'empty',
+        net: 'empty',
+        tls: 'empty'
+      }
 };
