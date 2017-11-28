@@ -7,12 +7,6 @@ const conn = mysql.createConnection({
     database: 'cs4400_Group_86'
 });
 
-var selectFromUser = function(callback) {
-    conn.query("SELECT * FROM User;", function(err, result, fields) {
-        if (err) throw err;
-        callback(result);
-    });
-}
 
 var selectForStationManagement = function(callback) {
     var sql = "SELECT Name, StopID, EnterFare, ClosedStatus FROM Station";
