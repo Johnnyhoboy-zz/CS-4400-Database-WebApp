@@ -443,21 +443,73 @@ var ViewStation = React.createClass({
 });
 
 var CreateStation = React.createClass({
+	getInitialState : function() {
+		return { name: '', id: '', fare: 0.0, type: "train", open: "closed", nearest: '', message: "" };
+	},
 	render : function() { return (
     	<div class="CreateStation">
-	    	<div><label>Station Name   </label><input type="text" /></div>
-	    	<div><label>Stop ID   </label><input type="text" /></div>
-	    	<div><label>Entry Fare   $</label><input type="text" /></div><br />
+	    	<div><label>Station Name   </label><input type="text" onChange={this.nameChange} /></div>
+	    	<div><label>Stop ID   </label><input type="text" onChange={this.idChange} /></div>
+	    	<div><label>Entry Fare   $</label><input type="text" onChange={this.fareChange} /></div><br />
 	    	<p>Station Type</p>
 	    	<form>
-	    		<input type="radio" name="stationtype" value="bus" /><label>Bus</label><br />
-	    		<label>Nearest Intersection</label><input type="text" /><br />
-	    		<input type="radio" name="stationtype" vaue="train" /><label>Train</label>
+	    		<input type="radio" name="stationtype" value="bus" checked={this.state.type!='train'} onChange={this.typeChange} />
+				<label>Bus</label><br />
+	    		<label>Nearest Intersection (Optional)</label>
+				<input type="text" onChange={this.nearestChange}/><br />
+	    		<input type="radio" name="stationtype" value="train" checked={this.state.type=='train'} onChange={this.typeChange} />
+				<label>Train</label><br />
+				<p>Should the station be open or closed?</p>
+				<input type="radio" name="open" value="open" checked={this.state.open!='closed'} onChange={this.openChange} />
+				<label>Open</label><br />
+	    		<input type="radio" name="open" value="closed" checked={this.state.open=='closed'} onChange={this.openChange} />
+				<label>Closed</label>
 	    	</form>
-	    	<button>Create Station</button>
+			<br />
+	    	<button onClick={this.createStation}>Create Station</button>
+			<p>{this.state.message}</p>
 	    	<br /><br /><button onClick={this.nStationManagement}>Back to Station Management</button>
     	</div>
     	); 
+	},
+	nameChange : function(e) {
+		this.setState({ name: e.target.value} );
+	},
+	idChange : function(e) {
+		this.setState({ id: e.target.value} );
+	},
+	fareChange : function(e) {
+		this.setState({ fare: e.target.value } );
+	},
+	typeChange : function(e) {
+		this.setState({ type: e.target.value} );
+	},
+	openChange : function(e) {
+		this.setState({ open: e.target.value });
+	},
+	nearestChange : function(e) {
+		this.setState( { nearest: e.target.value })
+	},
+	createStation : function() {
+		if (this.state.id == '' || this.state.name == '' || this.state.fare == '') {
+			if (this.state.message == '')
+				this.setState( { message: 'Please fill out all non-optional fields' });
+			return;
+		}
+		if (this.state.message != '')
+			this.setState( { message: '' });
+		fetch(server + '/createStation', {
+			method: 'post',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify({
+				 "StopID": this.state.id,
+				 "Name": this.state.name,
+				 "EnterFare": this.state.fare,
+				 "ClosedStatus": this.state.open,
+				 "IsTrain": this.state.type,
+				 "Intersection": this.state.nearest
+			})
+		});
 	},
 	nStationManagement : function() { showStationManagement(); }
 });

@@ -15,8 +15,10 @@ var _express2 = _interopRequireDefault(_express);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var dbconn = require('./dbconnection');
+var bodyParser = require('body-parser');
 
 var app = (0, _express2.default)();
+app.use(bodyParser.json());
 
 var publicPath = _express2.default.static(_path2.default.join(__dirname, '../'));
 var indexPath = _path2.default.join(__dirname, '../index.html');
@@ -28,8 +30,24 @@ app.get('/', function (req, res) {
 });
 
 app.get('/stationManagementData', function (req, res) {
-    dbconn.selectForStationManagement(function (result) {
+    dbconn.stationManagementData(function (result) {
         res.send(result);
+    });
+});
+
+app.post('/createStation', function (req, res) {
+    console.log(req.body);
+    var isTrain = 0;
+    var isClosed = 1;
+    if (req.body.IsTrain == 'train') isTrain = 1;
+    if (req.body.ClosedStatus == 'open') isClosed = 0;
+
+    dbconn.createStation(req.body.StopID, req.body.Name, req.body.EnterFare, isClosed, isTrain, function () {
+        if (!isTrain) {
+            var nearest = req.body.Intersection;
+            if (nearest == '') nearest = null;
+            dbconn.writeBusEntry(req.body.StopID, nearest);
+        }
     });
 });
 

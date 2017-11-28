@@ -9,14 +9,7 @@ var conn = mysql.createConnection({
     database: 'cs4400_Group_86'
 });
 
-var selectFromUser = function selectFromUser(callback) {
-    conn.query("SELECT * FROM User;", function (err, result, fields) {
-        if (err) throw err;
-        callback(result);
-    });
-};
-
-var selectForStationManagement = function selectForStationManagement(callback) {
+var stationManagementData = function stationManagementData(callback) {
     var sql = "SELECT Name, StopID, EnterFare, ClosedStatus FROM Station";
     conn.query(sql, function (err, result, fields) {
         if (err) throw err;
@@ -24,10 +17,29 @@ var selectForStationManagement = function selectForStationManagement(callback) {
     });
 };
 
+var createStation = function createStation(stopId, name, fare, closed, train, callback) {
+    var sql = "INSERT INTO Station(StopID, Name, EnterFare, ClosedStatus, IsTrain) VALUES (\"" + stopId + "\",\"" + name + '\",' + fare + ',' + closed + ',' + train + ');';
+    console.log(sql);
+    conn.query(sql, function (err, result, fields) {
+        if (err) throw err;
+    });
+    if (callback) callback();
+};
+
+var writeBusEntry = function writeBusEntry(stopId, intersection) {
+    var sql = "INSERT INTO BusStationIntersection(StopID, Intersection) VALUES (\"" + stopId + '\",NULL);';
+    if (intersection) sql = "INSERT INTO BusStationIntersection(StopID, Intersection) VALUES (\"" + stopId + "\",\"" + name + '\");';
+    console.log(sql);
+    conn.query(sql, function (err, result, fields) {
+        if (err) throw err;
+    });
+};
+
 var test = function test() {
     console.log('test successful');
 };
 
-module.exports.selectFromUser = selectFromUser;
 module.exports.test = test;
-module.exports.selectForStationManagement = selectForStationManagement;
+module.exports.stationManagementData = stationManagementData;
+module.exports.createStation = createStation;
+module.exports.writeBusEntry = writeBusEntry;
