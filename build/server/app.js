@@ -40,12 +40,10 @@ app.post('/viewStationData', function (req, res) {
         if (!result.isTrain) {
             dbconn.busData(req.body.StopID, function (busResult) {
                 result.intersection = busResult.Intersection;
-                console.log(result);
                 res.send(result);
             });
         } else {
             result.intersection = null;
-            console.log(result);
             res.send(result);
         }
     });
