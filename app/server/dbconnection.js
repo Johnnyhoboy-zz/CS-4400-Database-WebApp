@@ -16,15 +16,34 @@ var stationManagementData = function(callback) {
     });
 };
 
+var stationData = function(id, callback) {
+    var sql = "SELECT * FROM Station WHERE StopID=\"" + id + "\"";
+    conn.query(sql, function(err, result, fields) {
+        if (err) throw err;
+        callback(result[0]);
+    });
+};
+
+var busData = function(id, callback) {
+    var sql = "SELECT * FROM BusStationIntersection WHERE StopID=\"" + id + "\"";
+    conn.query(sql, function(err, result, fields) {
+        if (err) throw err;
+        callback(result[0]);
+    });
+};
+
 var createStation = function(stopId, name, fare, closed, train, callback) {
     var sql = "INSERT INTO Station(StopID, Name, EnterFare, ClosedStatus, IsTrain) VALUES (\""
         + stopId + "\",\"" + name + '\",' + fare +',' + closed + ',' + train + ');';
-    console.log(sql);
     conn.query(sql, function(err, result, fields) {
-        if (err) throw err;
+        if (err) {
+            console.log('query ran with error'); 
+            callback(err.sqlMessage);
+        } else {
+            console.log('query run successfully'); 
+            callback('');
+        }
     });
-    if (callback)
-        callback();
 };
 
 var writeBusEntry = function(stopId, intersection) {
@@ -32,8 +51,15 @@ var writeBusEntry = function(stopId, intersection) {
         + stopId + '\",NULL);';
     if (intersection)
         sql = "INSERT INTO BusStationIntersection(StopID, Intersection) VALUES (\""
-            + stopId +"\",\"" + name + '\");';
-    console.log(sql);
+            + stopId +"\",\"" + intersection + '\");';
+    conn.query(sql, function(err, result, fields) {
+        if (err) throw err;
+    });
+};
+
+var updateOpen = function(id, closedStatus) {
+    var str = closedStatus ? "false" : "true";
+    var sql = "UPDATE Station SET ClosedStatus=" + str + " WHERE StopID=\"" + id + "\"";
     conn.query(sql, function(err, result, fields) {
         if (err) throw err;
     });
@@ -45,3 +71,6 @@ module.exports.test = test;
 module.exports.stationManagementData = stationManagementData;
 module.exports.createStation = createStation;
 module.exports.writeBusEntry = writeBusEntry;
+module.exports.stationData = stationData;
+module.exports.busData = busData;
+module.exports.updateOpen = updateOpen;

@@ -35,20 +35,45 @@ app.get('/stationManagementData', function (req, res) {
     });
 });
 
+app.post('/viewStationData', function (req, res) {
+    dbconn.stationData(req.body.StopID, function (result) {
+        if (!result.isTrain) {
+            dbconn.busData(req.body.StopID, function (busResult) {
+                result.intersection = busResult.Intersection;
+                console.log(result);
+                res.send(result);
+            });
+        } else {
+            result.intersection = null;
+            console.log(result);
+            res.send(result);
+        }
+    });
+});
+
 app.post('/createStation', function (req, res) {
-    console.log(req.body);
     var isTrain = 0;
     var isClosed = 1;
     if (req.body.IsTrain == 'train') isTrain = 1;
     if (req.body.ClosedStatus == 'open') isClosed = 0;
 
-    dbconn.createStation(req.body.StopID, req.body.Name, req.body.EnterFare, isClosed, isTrain, function () {
+    dbconn.createStation(req.body.StopID, req.body.Name, req.body.EnterFare, isClosed, isTrain, function (errMsg) {
+        if (errMsg != '') {
+            res.send({ 'message': errMsg });
+            return;
+        }
         if (!isTrain) {
             var nearest = req.body.Intersection;
             if (nearest == '') nearest = null;
             dbconn.writeBusEntry(req.body.StopID, nearest);
         }
+        res.send({ 'message': 'success' });
     });
+});
+
+app.post('/updateOpen', function (req, res) {
+    var closedStatus = req.body.open == "closed";
+    dbconn.updateOpen(req.body.id, closedStatus);
 });
 
 app.get('/test', function (req, res) {

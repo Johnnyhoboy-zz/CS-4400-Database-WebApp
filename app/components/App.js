@@ -390,12 +390,26 @@ var PassengerFlowReport = React.createClass({
 var StationManagement = React.createClass({
 	getInitialState : function() {
 		var oColumns = [
+			{
+                Header: '',
+                accessor: 'editButton',
+                Cell: (row) => (
+                    <div>
+						<input type="radio" name="stationtype" value="select" 
+								onClick={() => this.selectRow(row)}/>
+					</div>
+                ),
+                maxWidth: 40
+            },
 			{ Header: 'Station Name', accessor: 'Name' },
 			{ Header: 'Stop ID', accessor: 'StopID' },
 			{ Header: 'Fare', accessor: 'EnterFare' },
 			{ Header: 'Status', accessor: 'ClosedStatus'}
 		];
-		return { columns: oColumns, data: [] };
+		return { columns: oColumns, data: [], selectedRow: null };
+	},
+	selectRow : function(row) {
+		this.setState( {selectedRow: row.original} );
 	},
 	componentDidMount : function() {
 		fetch(server + "/stationManagementData")
@@ -410,7 +424,6 @@ var StationManagement = React.createClass({
 		    	<ReactTable
 				    data={this.state.data}
 				    columns={this.state.columns}
-					defaultPageSize={10}
 					sortable={false}
 				  />	
 		    	<button onClick={this.nViewStation}>View Station</button>
@@ -420,24 +433,70 @@ var StationManagement = React.createClass({
 	    	</div>
     	);
 	},
-	nViewStation : function() { showViewStation(); },
+	nViewStation : function() { 
+		if (!this.state.selectedRow) {
+			alert('You need to choose a station before you can view it.');
+		} else {
+			showViewStation(this.state.selectedRow.StopID); 
+		}
+	},
 	nCreateStation : function() { showCreateStation(); },
 	nAdminFunctionality : function() { showAdminFunctionality(); }
 });
 
 var ViewStation = React.createClass({
+	getInitialState : function() {
+		return { name: '', id: '', fare: -1, open: 'closed', intersection: '' }
+	},
     render : function() { return (
     	<div class="ViewStation">
-	    	<h1>StationName (Stop StationID)</h1><br />
-	    	<p>Fare</p>
+	    	<h1>{this.state.name} (id {this.state.id})</h1><br />
+	    	<p>Current Fare: ${this.state.fare}</p>
 	    	<input type="text" />
 	    	<button>Update Fare</button>
-	    	<p>Nearest Intersection: Station|Not available for Train</p>
-	    	<input type="checkbox" /><label>Open Station (When checked, passengers can enter at this station)</label>
-	    	<br />
-	    	<br /><button onClick={this.nStationManagement}>Back to Station Management</button>
+	    	<p>Nearest Intersection: {this.state.intersection}</p>
+	    	<p>Should the station be open or closed?</p>
+			<form>
+				<input type="radio" name="open" value="open" checked={this.state.open!='closed'} 
+					onChange={this.openChange} />
+				<label>Open</label><br />
+				<input type="radio" name="open" value="closed" checked={this.state.open=='closed'} 
+					onChange={this.openChange} />
+				<label>Closed</label><br />
+				<button onClick={this.updateOpen}>Update</button>
+			</form>
+	    	<br /><br /><button onClick={this.nStationManagement}>Back to Station Management</button>
     	</div>
     	); 
+	},
+	componentDidMount : function() {
+		fetch(server + '/viewStationData', {
+			method: 'post',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify({
+				 "StopID": this.props.initialId
+			})
+		}).then(function(res){ return res.json(); })
+		.then(data => this.setState(
+			{ 
+					name: data.Name, id: data.StopID, fare: data.EnterFare,
+					open: (data.ClosedStatus) ? "closed" : "open",
+					intersection: (data.intersection != null) ? data.intersection 
+						: 'Not available for trains'
+			}));
+		},
+	openChange : function(e) {
+		this.setState( { open: e.value } );
+	},
+	updateOpen : function() {
+		fetch(server + '/updateOpen', {
+			method: 'post',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify({
+				 "StopID": this.state.id,
+				 "open": this.state.open
+			})
+		});
 	},
 	nStationManagement : function() { showStationManagement(); }
 });
@@ -492,8 +551,7 @@ var CreateStation = React.createClass({
 	},
 	createStation : function() {
 		if (this.state.id == '' || this.state.name == '' || this.state.fare == '') {
-			if (this.state.message == '')
-				this.setState( { message: 'Please fill out all non-optional fields' });
+			alert('Please fill out all non-optional fields');
 			return;
 		}
 		if (this.state.message != '')
@@ -509,7 +567,7 @@ var CreateStation = React.createClass({
 				 "IsTrain": this.state.type,
 				 "Intersection": this.state.nearest
 			})
-		});
+		}).then(function(res){ return res.json(); }).then(function(data){ alert( data.message ) });
 	},
 	nStationManagement : function() { showStationManagement(); }
 });
@@ -544,8 +602,9 @@ function showTripHistory() {
 	ReactDOM.render(<TripHistory />, document.getElementById('root'));
 }
 
-function showViewStation() {
-	ReactDOM.render(<ViewStation />, document.getElementById('root'));
+function showViewStation(stationId) {
+	ReactDOM.render(<ViewStation
+						initialId={stationId} />, document.getElementById('root'));
 }
 
 function showCreateStation() {
