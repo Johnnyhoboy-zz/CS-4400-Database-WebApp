@@ -446,30 +446,34 @@ var StationManagement = React.createClass({
 
 var ViewStation = React.createClass({
 	getInitialState : function() {
-		return { name: '', id: '', fare: -1, open: 'closed', intersection: '' }
+		return { name: '', id: '', fare: -1, open: 'closed', intersection: '', newFare: '' }
 	},
     render : function() { return (
     	<div class="ViewStation">
 	    	<h1>{this.state.name} (id {this.state.id})</h1><br />
 	    	<p>Current Fare: ${this.state.fare}</p>
-	    	<input type="text" />
-	    	<button>Update Fare</button>
+	    	<label>$</label><input type="text" onChange={this.fareChange}/>
+	    	<button onClick={this.updateFare}>Update Fare</button>
 	    	<p>Nearest Intersection: {this.state.intersection}</p>
 	    	<p>Should the station be open or closed?</p>
 			<form>
-				<input type="radio" name="open" value="open" checked={this.state.open!='closed'} 
-					onChange={this.openChange} />
+				<input type="radio" name="open" value="open" checked={this.state.open=='open'} 
+						onChange={this.openChange} />
 				<label>Open</label><br />
 				<input type="radio" name="open" value="closed" checked={this.state.open=='closed'} 
-					onChange={this.openChange} />
+						onChange={this.openChange} />
 				<label>Closed</label><br />
-				<button onClick={this.updateOpen}>Update</button>
 			</form>
+			<button onClick={this.updateOpen}>Update</button>
 	    	<br /><br /><button onClick={this.nStationManagement}>Back to Station Management</button>
     	</div>
     	); 
 	},
 	componentDidMount : function() {
+		this.refreshState();
+	},
+	refreshState : function() {
+		console.log('refreshing state');
 		fetch(server + '/viewStationData', {
 			method: 'post',
 			headers: {'Content-Type': 'application/json'},
@@ -481,12 +485,15 @@ var ViewStation = React.createClass({
 			{ 
 					name: data.Name, id: data.StopID, fare: data.EnterFare,
 					open: (data.ClosedStatus) ? "closed" : "open",
-					intersection: (data.intersection != null) ? data.intersection 
+					intersection: (data.intersection != null) ? data.intersection
 						: 'Not available for trains'
 			}));
-		},
+	},
+	fareChange : function(e) {
+		this.setState({ newFare: e.target.value} );
+	},
 	openChange : function(e) {
-		this.setState( { open: e.value } );
+		this.setState({ open: e.target.value });
 	},
 	updateOpen : function() {
 		fetch(server + '/updateOpen', {
@@ -497,6 +504,22 @@ var ViewStation = React.createClass({
 				 "open": this.state.open
 			})
 		});
+	},
+	updateFare : function() {
+		if (this.state.newFare < 0 || this.state.newFare > 50) {
+			alert('Fares must be between $0.00 and $50.00');
+		} else {
+			fetch(server + '/updateFare', {
+				method: 'post',
+				headers: {'Content-Type': 'application/json'},
+				body: JSON.stringify({
+					"StopID": this.state.id,
+					"EnterFare": this.state.newFare
+				})
+			}).then(function(response) {
+				return response.json();
+			}).then(data => this.refreshState() );
+		}
 	},
 	nStationManagement : function() { showStationManagement(); }
 });

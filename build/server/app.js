@@ -37,15 +37,13 @@ app.get('/stationManagementData', function (req, res) {
 
 app.post('/viewStationData', function (req, res) {
     dbconn.stationData(req.body.StopID, function (result) {
-        if (!result.isTrain) {
+        if (!result.IsTrain) {
             dbconn.busData(req.body.StopID, function (busResult) {
-                result.intersection = busResult.Intersection;
-                console.log(result);
+                result.intersection = busResult.Intersection ? busResult.Intersection : 'Unavailable';
                 res.send(result);
             });
         } else {
-            result.intersection = null;
-            console.log(result);
+            result.intersection = '';
             res.send(result);
         }
     });
@@ -73,7 +71,12 @@ app.post('/createStation', function (req, res) {
 
 app.post('/updateOpen', function (req, res) {
     var closedStatus = req.body.open == "closed";
-    dbconn.updateOpen(req.body.id, closedStatus);
+    dbconn.updateOpen(req.body.StopID, closedStatus);
+});
+
+app.post('/updateFare', function (req, res) {
+    dbconn.updateFare(req.body.StopID, req.body.EnterFare);
+    res.send({ 'message': 'pending' });
 });
 
 app.get('/test', function (req, res) {

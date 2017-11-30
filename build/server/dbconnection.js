@@ -55,8 +55,15 @@ var writeBusEntry = function writeBusEntry(stopId, intersection) {
 };
 
 var updateOpen = function updateOpen(id, closedStatus) {
-    var str = closedStatus ? "false" : "true";
+    var str = closedStatus ? "1" : "0";
     var sql = "UPDATE Station SET ClosedStatus=" + str + " WHERE StopID=\"" + id + "\"";
+    conn.query(sql, function (err, result, fields) {
+        if (err) throw err;
+    });
+};
+
+var updateFare = function updateFare(id, fare) {
+    var sql = "UPDATE Station SET EnterFare=" + fare + " WHERE StopID=\"" + id + "\"";
     conn.query(sql, function (err, result, fields) {
         if (err) throw err;
     });
@@ -73,3 +80,4 @@ module.exports.writeBusEntry = writeBusEntry;
 module.exports.stationData = stationData;
 module.exports.busData = busData;
 module.exports.updateOpen = updateOpen;
+module.exports.updateFare = updateFare;
