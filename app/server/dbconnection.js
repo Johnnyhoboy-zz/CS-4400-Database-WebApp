@@ -17,25 +17,24 @@ var stationManagementData = function(callback) {
 };
 
 var stationData = function(id, callback) {
-    var sql = "SELECT * FROM Station WHERE StopID=\"" + id + "\"";
-    conn.query(sql, function(err, result, fields) {
+    var sql = "SELECT * FROM Station WHERE StopID= ?";
+    conn.query(sql, [id], function(err, result, fields) {
         if (err) throw err;
         callback(result[0]);
     });
 };
 
 var busData = function(id, callback) {
-    var sql = "SELECT * FROM BusStationIntersection WHERE StopID=\"" + id + "\"";
-    conn.query(sql, function(err, result, fields) {
+    var sql = "SELECT * FROM BusStationIntersection WHERE StopID=?";
+    conn.query(sql, [id], function(err, result, fields) {
         if (err) throw err;
         callback(result[0]);
     });
 };
 
 var createStation = function(stopId, name, fare, closed, train, callback) {
-    var sql = "INSERT INTO Station(StopID, Name, EnterFare, ClosedStatus, IsTrain) VALUES (\""
-        + stopId + "\",\"" + name + '\",' + fare +',' + closed + ',' + train + ');';
-    conn.query(sql, function(err, result, fields) {
+    var sql = "INSERT INTO Station(StopID, Name, EnterFare, ClosedStatus, IsTrain) VALUES (?, ?, ?, ?, ?)";
+    conn.query(sql, [stopId, name, fare, closed, train], function(err, result, fields) {
         if (err) {
             console.log('query ran with error'); 
             callback(err.sqlMessage);
@@ -47,27 +46,26 @@ var createStation = function(stopId, name, fare, closed, train, callback) {
 };
 
 var writeBusEntry = function(stopId, intersection) {
-    var sql = "INSERT INTO BusStationIntersection(StopID, Intersection) VALUES (\""
-        + stopId + '\",NULL);';
+    var sql = "INSERT INTO BusStationIntersection(StopID, Intersection) VALUES (?, ?);";
+    var arr = [stopId, null]
     if (intersection)
-        sql = "INSERT INTO BusStationIntersection(StopID, Intersection) VALUES (\""
-            + stopId +"\",\"" + intersection + '\");';
-    conn.query(sql, function(err, result, fields) {
+        arr = [stopId, intersection]
+    conn.query(sql, arr, function(err, result, fields) {
         if (err) throw err;
     });
 };
 
 var updateOpen = function(id, closedStatus) {
     var str = closedStatus ? "1" : "0";
-    var sql = "UPDATE Station SET ClosedStatus=" + str + " WHERE StopID=\"" + id + "\"";
-    conn.query(sql, function(err, result, fields) {
+    var sql = "UPDATE Station SET ClosedStatus= ? WHERE StopID=?";
+    conn.query(sql, [str, id], function(err, result, fields) {
         if (err) throw err;
     });
 };
 
 var updateFare = function(id, fare) {
-    var sql = "UPDATE Station SET EnterFare=" + fare + " WHERE StopID=\"" + id + "\"";
-    conn.query(sql, function(err, result, fields) {
+    var sql = "UPDATE Station SET EnterFare= ? WHERE StopID= ?";
+    conn.query(sql, [fare, id], function(err, result, fields) {
         if (err) throw err;
     });
 };
