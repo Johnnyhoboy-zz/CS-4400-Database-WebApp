@@ -77,7 +77,7 @@ var updateFare = function(id, fare) {
 };
 
 // gets the data for the admin breezecard management page
-var adminBreezecardData = function(owner, cardNumber, valueLow, valueHigh, sort, callback) {
+var adminBreezecardData = function(owner, cardNumber, valueLow, valueHigh, sort, desc, callback) {
     var sql = "SELECT * FROM Breezecard AS b " +
               "WHERE (? = \'\' OR b.BelongsTo = ?) " +
               "AND   (? = \'\' OR b.BreezecardNum = ?) " +
@@ -85,15 +85,15 @@ var adminBreezecardData = function(owner, cardNumber, valueLow, valueHigh, sort,
               "AND   (? = \'\' OR b.Value <= ?) " +
               "AND   (b.BreezecardNum NOT IN (SELECT c.BreezecardNum " +
                                              "FROM Conflict AS c)) " +
-              "ORDER BY ?;";
-    conn.query(sql, [owner, owner, cardNumber, cardNumber, valueLow, valueLow, valueHigh, valueHigh, sort],
+              "ORDER BY " + sort + " " + desc;
+    conn.query(sql, [owner, owner, cardNumber, cardNumber, valueLow, valueLow, valueHigh, valueHigh],
         function(err, result, fields) {
             if (err) throw err;
             callback(result);
     });
 };
 
-var adminBreezecardDataSuspended = function(owner, cardNumber, valueLow, valueHigh, sort, callback) {
+var adminBreezecardDataSuspended = function(owner, cardNumber, valueLow, valueHigh, sort, desc, callback) {
     var sql = "SELECT * FROM Breezecard AS b " +
               "WHERE (? = \'\' OR b.BelongsTo = ?) " +
               "AND   (? = \'\' OR b.BreezecardNum = ?) " +
@@ -108,9 +108,9 @@ var adminBreezecardDataSuspended = function(owner, cardNumber, valueLow, valueHi
               "AND   (? = \'\' OR b.BreezecardNum = ?) " +
               "AND   (? = \'\' OR b.Value >= ?) " +
               "AND   (? = \'\' OR b.Value <= ?) " +
-              "ORDER BY ?;";
+              "ORDER BY " + sort + " " + desc;
     conn.query(sql, [owner, owner, cardNumber, cardNumber, valueLow, valueLow, valueHigh, valueHigh,
-                     owner, owner, cardNumber, cardNumber, valueLow, valueLow, valueHigh, valueHigh, sort],
+                     owner, owner, cardNumber, cardNumber, valueLow, valueLow, valueHigh, valueHigh],
         function(err, result, fields) {
             if (err) throw err;
             callback(result);

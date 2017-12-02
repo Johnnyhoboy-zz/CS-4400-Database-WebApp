@@ -37,13 +37,13 @@ app.get('/stationManagementData', function (req, res) {
 
 app.post('/viewStationData', function (req, res) {
     dbconn.stationData(req.body.StopID, function (result) {
-        if (!result.isTrain) {
+        if (!result.IsTrain) {
             dbconn.busData(req.body.StopID, function (busResult) {
-                result.intersection = busResult.Intersection;
+                result.intersection = busResult.Intersection ? busResult.Intersection : 'Unavailable';
                 res.send(result);
             });
         } else {
-            result.intersection = null;
+            result.intersection = '';
             res.send(result);
         }
     });
@@ -71,13 +71,33 @@ app.post('/createStation', function (req, res) {
 
 app.post('/updateOpen', function (req, res) {
     var closedStatus = req.body.open == "closed";
-    dbconn.updateOpen(req.body.id, closedStatus);
+    dbconn.updateOpen(req.body.StopID, closedStatus);
+});
+
+app.post('/updateFare', function (req, res) {
+    dbconn.updateFare(req.body.StopID, req.body.EnterFare);
+    res.send({ 'message': 'pending' });
 });
 
 app.get('/test', function (req, res) {
     dbconn.selectFromUser(function (result) {
         res.send(result);
     });
+});
+
+app.post('/adminBreezeCardData', function (req, res) {
+    if (req.body.suspended) {
+        dbconn.adminBreezecardDataSuspended(req.body.owner, req.body.cardNumber, req.body.valueLow, req.body.valueHigh, req.body.sort, req.body.desc, function (result) {
+            res.send(result);
+        });
+    } else {
+        console.log(req.body.sort);
+        console.log(req.body.desc);
+        dbconn.adminBreezecardData(req.body.owner, req.body.cardNumber, req.body.valueLow, req.body.valueHigh, req.body.sort, req.body.desc, function (result) {
+            console.log(result);
+            res.send(result);
+        });
+    }
 });
 
 exports.default = app;

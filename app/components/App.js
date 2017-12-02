@@ -229,7 +229,8 @@ var BreezecardManagement = React.createClass({
         ];
 
         return { columns: oColumns, data: [], owner: '', suspended: '', cardNumber: '',
-                 valueLow: '', valueHigh: '', setValue: '', transfer: '', sort: '', selected: breezeCardManagementOptions[0]};
+                 valueLow: '', valueHigh: '', setValue: '', transfer: '', sort: "BreezecardNum",
+                 selected: breezeCardManagementOptions[0], descending: ''};
     },
     selectRow : function(row) {
         this.setState( {selectedRow: row.original} );
@@ -258,7 +259,7 @@ var BreezecardManagement = React.createClass({
                     <input type="text" name="owner_textbox" onChange={this.ownerChange}/>
                 </span>
                 <input type="checkbox" name="suspended_checkbox" id="suspended_checkbox" onClick={this.suspendedChange} />
-                <label for="suspended_checkbox"> Show Suspended Cards </label>
+                <label htmlFor="suspended_checkbox"> Show Suspended Cards </label>
             </p>
             <p>
                 <text style={style5}>
@@ -288,6 +289,10 @@ var BreezecardManagement = React.createClass({
             </text>
             <div style={{width: "250px"}}>
                 <Dropdown options={breezeCardManagementOptions} onChange={this.sortChange} value={defaultOption}/>
+                <text style={style5}>
+                    Sort Descending?
+                </text>
+                <input type="checkbox" name="descending_checkbox" id="descending_checkbox" onClick={this.descendingChange} />
             </div>
             <p></p>
             <ReactTable
@@ -334,6 +339,13 @@ var BreezecardManagement = React.createClass({
     suspendedChange: function(e) {
         this.setState({suspended : e.target.checked});
     },
+    descendingChange: function(e) {
+        if (e.target.checked) {
+            this.setState({descending : 'DESC'});
+        } else {
+            this.setState({descending : ''});
+        }
+    },
     cardNumberChange: function(e) {
         this.setState({cardNumber: e.target.value});
     },
@@ -359,7 +371,8 @@ var BreezecardManagement = React.createClass({
              "valueLow": this.state.valueLow,
              "valueHigh": this.state.valueHigh,
              "suspended": this.state.suspended,
-             "sort": this.state.sort
+             "sort": this.state.sort,
+             "desc": this.state.descending
          })
         }).then(function(response) {
             return response.json();

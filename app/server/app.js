@@ -78,13 +78,11 @@ app.get('/test', (req, res) => {
 
 app.post('/adminBreezeCardData', (req, res) => {
     if(req.body.suspended) {
-        dbconn.adminBreezecardDataSuspended(req.body.owner, req.body.cardNumber, req.body.valueLow, req.body.valueHigh, req.body.sort, function(result) {
+        dbconn.adminBreezecardDataSuspended(req.body.owner, req.body.cardNumber, req.body.valueLow, req.body.valueHigh, req.body.sort, req.body.desc, function(result) {
             res.send(result);
         });
     } else {
-        console.log(req.body.sort);
-        console.log(req.body.owner);
-        dbconn.adminBreezecardData(req.body.owner, req.body.cardNumber, req.body.valueLow, req.body.valueHigh, req.body.sort, function(result) {
+        dbconn.adminBreezecardData(req.body.owner, req.body.cardNumber, req.body.valueLow, req.body.valueHigh, req.body.sort, req.body.desc, function(result) {
             console.log(result);
             res.send(result);
         });
