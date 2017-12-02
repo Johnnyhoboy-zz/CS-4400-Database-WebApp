@@ -478,6 +478,7 @@ var PassengerFlowReport = React.createClass({
     nAdminFunctionality : function() { showAdminFunctionality(); }
 });
 
+const stationManagementSortOptions = ['Station Name', 'Stop ID', 'Fare', 'Status'];
 var StationManagement = React.createClass({
     getInitialState : function() {
         var oColumns = [
@@ -497,21 +498,38 @@ var StationManagement = React.createClass({
             { Header: 'Fare', accessor: 'EnterFare' },
             { Header: 'Status', accessor: 'ClosedStatus'}
         ];
-        return { columns: oColumns, data: [], selectedRow: null };
+		return { columns: oColumns, data: [], selectedRow: null, descending: '',
+			sort: 'Name' };
     },
     selectRow : function(row) {
         this.setState( {selectedRow: row.original} );
     },
     componentDidMount : function() {
-        fetch(server + "/stationManagementData")
-        .then(response => response.json())
-        .then(data => this.setState({ data: data })
-        );
+		fetch(server + '/stationManagementData', {
+		 method: 'post',
+         headers: {'Content-Type': 'application/json'},
+         body: JSON.stringify({
+             "sort": this.state.sort,
+             "desc": this.state.descending
+         })
+        }).then(function(response) {
+            return response.json();
+        }).then(data => this.setState({data : data}));
     },
     render : function() {
         return (
             <div class="StationManagement">
                 <h1>Station Listing</h1>
+				<div style={{width: "250px"}}>
+				<p>Sort by:</p>
+				<Dropdown options={stationManagementSortOptions} 
+						onChange={this.sortChange} 
+						value={this.state.sort}/>
+                <text>Sort Descending?</text>
+				<input type="checkbox" name="descending_checkbox" id="descending_checkbox" 
+						onClick={this.descendingChange} />
+				<br /><button onClick={this.updateSort}>Update Sort</button>
+            </div>
                 <ReactTable
                     data={this.state.data}
                     columns={this.state.columns}
@@ -523,6 +541,27 @@ var StationManagement = React.createClass({
                 <button onClick={this.nAdminFunctionality}>Back To Admin Functionality</button>
             </div>
         );
+	},
+	updateSort : function() {
+		this.componentDidMount();
+	},
+	sortChange: function(e) {
+		['Station Name', 'Stop ID', 'Fare', 'Status'];
+		if (e.value == 'Station Name')
+			this.setState({sort: 'Name'});
+		else if (e.value == 'Stop ID')
+			this.setState({sort: 'StopID'});
+		else if (e.value == 'Fare')
+			this.setState({sort: 'EnterFare'});
+		else if (e.value == 'Status')
+			this.setState({sort: 'ClosedStatus'})
+	},
+	descendingChange: function(e) {
+        if (e.target.checked) {
+            this.setState({descending : 'DESC'});
+        } else {
+            this.setState({descending : ''});
+        }
     },
     nViewStation : function() {
         if (!this.state.selectedRow) {
@@ -564,7 +603,6 @@ var ViewStation = React.createClass({
         this.refreshState();
     },
     refreshState : function() {
-        console.log('refreshing state');
         fetch(server + '/viewStationData', {
             method: 'post',
             headers: {'Content-Type': 'application/json'},

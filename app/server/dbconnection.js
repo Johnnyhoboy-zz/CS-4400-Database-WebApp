@@ -8,8 +8,8 @@ const conn = mysql.createConnection({
 });
 
 // gets data for station management
-var stationManagementData = function(callback) {
-    var sql = "SELECT Name, StopID, EnterFare, ClosedStatus FROM Station";
+var stationManagementData = function(sort, desc, callback) {
+    var sql = "SELECT Name, StopID, EnterFare, ClosedStatus FROM Station ORDER BY " + sort + ' ' + desc;
     conn.query(sql, function(err, result, fields) {
         if (err) throw err;
         callback(result);
@@ -39,10 +39,8 @@ var createStation = function(stopId, name, fare, closed, train, callback) {
     var sql = "INSERT INTO Station(StopID, Name, EnterFare, ClosedStatus, IsTrain) VALUES (?, ?, ?, ?, ?)";
     conn.query(sql, [stopId, name, fare, closed, train], function(err, result, fields) {
         if (err) {
-            console.log('query ran with error');
             callback(err.sqlMessage);
         } else {
-            console.log('query run successfully');
             callback('');
         }
     });

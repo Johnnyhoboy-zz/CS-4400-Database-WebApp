@@ -10,8 +10,8 @@ var conn = mysql.createConnection({
 });
 
 // gets data for station management
-var stationManagementData = function stationManagementData(callback) {
-    var sql = "SELECT Name, StopID, EnterFare, ClosedStatus FROM Station";
+var stationManagementData = function stationManagementData(sort, desc, callback) {
+    var sql = "SELECT Name, StopID, EnterFare, ClosedStatus FROM Station ORDER BY " + sort + ' ' + desc;
     conn.query(sql, function (err, result, fields) {
         if (err) throw err;
         callback(result);
@@ -41,10 +41,8 @@ var createStation = function createStation(stopId, name, fare, closed, train, ca
     var sql = "INSERT INTO Station(StopID, Name, EnterFare, ClosedStatus, IsTrain) VALUES (?, ?, ?, ?, ?)";
     conn.query(sql, [stopId, name, fare, closed, train], function (err, result, fields) {
         if (err) {
-            console.log('query ran with error');
             callback(err.sqlMessage);
         } else {
-            console.log('query run successfully');
             callback('');
         }
     });
@@ -81,7 +79,6 @@ var updateFare = function updateFare(id, fare) {
 var adminBreezecardData = function adminBreezecardData(owner, cardNumber, valueLow, valueHigh, sort, desc, callback) {
     var sql = "SELECT * FROM Breezecard AS b " + "WHERE (? = \'\' OR b.BelongsTo = ?) " + "AND   (? = \'\' OR b.BreezecardNum = ?) " + "AND   (? = \'\' OR b.Value >= ?) " + "AND   (? = \'\' OR b.Value <= ?) " + "AND   (b.BreezecardNum NOT IN (SELECT c.BreezecardNum " + "FROM Conflict AS c)) " + "ORDER BY " + sort + " " + desc;
     conn.query(sql, [owner, owner, cardNumber, cardNumber, valueLow, valueLow, valueHigh, valueHigh], function (err, result, fields) {
-        console.log(sql);
         if (err) throw err;
         callback(result);
     });

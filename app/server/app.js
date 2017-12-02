@@ -16,8 +16,11 @@ app.get('/', (req, res) => {
     res.sendFile(indexPath);
 });
 
-app.get('/stationManagementData', (req, res) => {
-    dbconn.stationManagementData( function(result) {
+app.post('/stationManagementData', (req, res) => {
+    dbconn.stationManagementData(req.body.sort, req.body.desc, function(result) {
+        for (var i = 0; i < result.length; i++) {
+            result[i].ClosedStatus = result[i].ClosedStatus ? "Closed" : "Open";
+        }
         res.send(result);
     });
 });

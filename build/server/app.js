@@ -29,8 +29,11 @@ app.get('/', function (req, res) {
     res.sendFile(indexPath);
 });
 
-app.get('/stationManagementData', function (req, res) {
-    dbconn.stationManagementData(function (result) {
+app.post('/stationManagementData', function (req, res) {
+    dbconn.stationManagementData(req.body.sort, req.body.desc, function (result) {
+        for (var i = 0; i < result.length; i++) {
+            result[i].ClosedStatus = result[i].ClosedStatus ? "Closed" : "Open";
+        }
         res.send(result);
     });
 });
@@ -91,8 +94,6 @@ app.post('/adminBreezeCardData', function (req, res) {
             res.send(result);
         });
     } else {
-        console.log(req.body.sort);
-        console.log(req.body.desc);
         dbconn.adminBreezecardData(req.body.owner, req.body.cardNumber, req.body.valueLow, req.body.valueHigh, req.body.sort, req.body.desc, function (result) {
             console.log(result);
             res.send(result);
