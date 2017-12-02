@@ -85,19 +85,4 @@ app.get('/test', function (req, res) {
     });
 });
 
-app.post('/adminBreezeCardData', function (req, res) {
-    if (req.body.suspended) {
-        dbconn.adminBreezecardDataSuspended(req.body.owner, req.body.cardNumber, req.body.valueLow, req.body.valueHigh, req.body.sort, function (result) {
-            res.send(result);
-        });
-    } else {
-        console.log(req.body.sort);
-        console.log(req.body.owner);
-        dbconn.adminBreezecardData(req.body.owner, req.body.cardNumber, req.body.valueLow, req.body.valueHigh, req.body.sort, function (result) {
-            console.log(result);
-            res.send(result);
-        });
-    }
-});
-
 exports.default = app;

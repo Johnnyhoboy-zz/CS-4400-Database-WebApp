@@ -1,8 +1,6 @@
 import ReactDOM from 'react-dom';
 import ReactTable from 'react-table';
 import "react-table/react-table.css";
-import Dropdown from 'react-dropdown';
-import "react-dropdown/style.css";
 
 const server = "http://localhost:8080";
 //
@@ -28,7 +26,7 @@ var LogIn = React.createClass({
 	    	<button onClick={this.nAdminFunctionality}>Go To Admin Functionality</button>
 	    	</center>
     	</div>
-    	);
+    	); 
 	},
     nRegistration : function() { showRegistration(); },
     nPassengerFunctionality : function() { showPassengerFunctionality(); },
@@ -60,11 +58,11 @@ var Registration = React.createClass({
 	        <br />
 
 	    	<button>Create Account</button>
-	    	<button onClick={this.nLogin}>Back</button>
+	    	<button onClick={this.nLogin}>Back</button> 
 	    	</center>
 
     	</div>
-    	);
+    	); 
 	},
 	nLogin : function() { showLogIn(); }
 });
@@ -73,7 +71,7 @@ var PassengerFunctionality = React.createClass({
     render : function() { return (
     	<div class="PassengerFunctionality">
 	    	<p>Welcome To Marta</p>
-
+	    	
 	    	<p>Passenger Functionality</p>
 
 	    	<div><label>Breeze Card </label><input type="text" /><a href="#"onClick={this.nManageCards}>Manage Cards</a></div>
@@ -103,7 +101,7 @@ var PassengerFunctionality = React.createClass({
 	    	<br/>
 	    	<button onClick={this.nLogin}>Back</button>
     	</div>
-    	);
+    	); 
 	},
 	nTripHistory : function() { showTripHistory(); },
 	nManageCards : function() { showManageCards(); },
@@ -118,7 +116,7 @@ var ManageCards = React.createClass({
             { Header: ' ', accessor: 'remove' },
         ];
         var oData = [
-            { cardnum: '1111 2222 3333 4444', val: '15.50', remove: <a href="#">Remove</a> },
+            { cardnum: '1111 2222 3333 4444', val: '15.50', remove: <a href="#">Remove</a> }, 
             { cardnum: '5555 6666 7777 8888', val: '20.12', remove: <a href="#">Remove</a> }
         ];
         return { columns: oColumns, data: oData };
@@ -130,8 +128,8 @@ var ManageCards = React.createClass({
             <ReactTable
                     data={this.state.data}
                     columns={this.state.columns}
-                    defaultPageSize={5}
-                    />
+                    defaultPageSize={5} 
+                    />	
 		    	<br/>
                 <input type="text" />
 	    	    <button>Add Card</button>
@@ -159,7 +157,7 @@ var TripHistory = React.createClass({
             { Header: 'Card #', accessor: 'card' },
         ];
         var oData = [
-            { time: '11:11', source: 'North Ave',destination: 'Dunwoody', fairpaid: '$1.50', card: '4411' },
+            { time: '11:11', source: 'North Ave',destination: 'Dunwoody', fairpaid: '$1.50', card: '4411' }, 
             { time: '11:22', source: 'Dun',destination: 'NA', fairpaid: '$3.50', card: '1122' }
         ];
         return { columns: oColumns, data: oData };
@@ -177,12 +175,12 @@ var TripHistory = React.createClass({
 	    	<ReactTable
                     data={this.state.data}
                     columns={this.state.columns}
-                    defaultPageSize={5}
-                    />
+                    defaultPageSize={5} 
+                    />	
 		    	<br/>
 	    	<button onClick={this.nPassengerFunctionality}>Back to Passenger Functionality</button>
     	</div>
-    	);
+    	); 
 	},
 	nPassengerFunctionality : function() { showPassengerFunctionality(); }
 });
@@ -206,33 +204,17 @@ var AdminFunctionality = React.createClass({
 	nLogin : function() { showLogIn(); }
 });
 
-const breezeCardManagementOptions = ['Card #', 'Value', 'Owner'];
 var BreezecardManagement = React.createClass({
-
     getInitialState : function() {
-
 		var oColumns = [
-            {
-                Header: '',
-                accessor: 'editButton',
-                Cell: (row) => (
-                    <div>
-                        <input type="radio" name="stationtype" value="select"
-                                onClick={() => this.selectRow(row)}/>
-                    </div>
-                ),
-                maxWidth: 40
-            },
-			{ Header: 'Card #', accessor: 'BreezecardNum' },
-			{ Header: 'Value', accessor: 'Value' },
-			{ Header: 'Owner', accessor: 'BelongsTo' }
+			{ Header: 'Card #', accessor: 'cardno' },
+			{ Header: 'Value', accessor: 'value' },
+			{ Header: 'Owner', accessor: 'owner' }
 		];
-
-		return { columns: oColumns, data: [], owner: '', suspended: '', cardNumber: '',
-                 valueLow: '', valueHigh: '', setValue: '', transfer: '', sort: '', selected: breezeCardManagementOptions[0]};
-    },
-    selectRow : function(row) {
-        this.setState( {selectedRow: row.original} );
+		var oData = [
+			{ cardno: '1', value: '$100.00', owner: 'dootboi' }
+		];
+		return { columns: oColumns, data: oData };
     },
     render : function() {
         const style5 = {
@@ -241,9 +223,7 @@ var BreezecardManagement = React.createClass({
         };
         const style40 = {
             paddingLeft: '40px'
-        };
-
-        const defaultOption = this.state.selected;
+        }
 
         return (
     	<div class="BreezecardManagement">
@@ -255,16 +235,16 @@ var BreezecardManagement = React.createClass({
                     Owner:
                 </text>
                 <span style={style5}>
-                    <input type="text" name="owner_textbox" onChange={this.ownerChange}/>
+                    <input type="text" name="owner_textbox" />
                 </span>
-                <input type="checkbox" name="suspended_checkbox" id="suspended_checkbox" onClick={this.suspendedChange} />
+                <input type="checkbox" name="suspended_checkbox" id="suspended_checkbox" />
                 <label for="suspended_checkbox"> Show Suspended Cards </label>
             </p>
             <p>
                 <text style={style5}>
                     Card Number:
                  </text>
-                <input type="text" name="card_number_textbox" onChange={this.cardNumberChange} />
+                <input type="text" name="card_number_textbox" />
                 <span style={style40}>
                     <button> Reset </button>
                 </span>
@@ -273,38 +253,31 @@ var BreezecardManagement = React.createClass({
                 <text style={style5}>
                     Value between:
                 </text>
-                <input type="text" name="value_start_textbox" size='6' onChange={this.valueLowChange}/>
+                <input type="text" name="value_start_textbox" size='6' />
             </span>
             <text style={style5}>
                 and:
             </text>
-            <input type="text" name="value_end_textbox" size='6' onChange={this.valueHighChange}/>
+            <input type="text" name="value_end_textbox" size='6' />
             <span style={style40}>
-                    <button onClick={this.updateData}> Update Filter </button>
-            </span>
-            <p></p>
-            <text style={style5}>
-                Order by:
-            </text>
-            <div style={{width: "250px"}}>
-                <Dropdown options={breezeCardManagementOptions} onChange={this.sortChange} value={defaultOption}/>
-            </div>
+                    <button> Update Filter </button>
+                </span>
             <p></p>
 			<ReactTable
 				    data={this.state.data}
 				    columns={this.state.columns}
 					defaultPageSize={15}
 					sortable={false}
-                    defaultSortMethod={undefined}/>
+				  />
             <p>
                 <span style={style5}>
-                    <input type="text" name="card_value_textbox" onChange={this.setValueChange}/>
+                    <input type="text" name="card_value_textbox"/>
                 </span>
                 <button>Set Value of Selected Card</button>
             </p>
             <p>
                 <span style={style5}>
-                    <input type="text" name="transfer_card_textbox" onChange={this.transferChange}/>
+                    <input type="text" name="transfer_card_textbox"/>
                 </span>
                 <button>Transfer Selected Card</button>
             </p>
@@ -314,57 +287,6 @@ var BreezecardManagement = React.createClass({
     	</div>
     	);
 	},
-    componentDidMount : function() {
-        this.updateData();
-    },
-    ownerChange: function(e) {
-        this.setState({owner : e.target.value});
-    },
-    sortChange: function(e) {
-        if (e.value == breezeCardManagementOptions[0]) {
-            this.setState({sort: "BreezecardNum"});
-        } else if (e.value == breezeCardManagementOptions[1]) {
-            this.setState({sort: "Value"});
-        } else {
-            this.setState({sort: "BelongsTo"});
-        }
-        this.setState({selected: e});
-
-    },
-    suspendedChange: function(e) {
-        this.setState({suspended : e.target.checked});
-    },
-    cardNumberChange: function(e) {
-        this.setState({cardNumber: e.target.value});
-    },
-    valueLowChange: function(e) {
-        this.setState({valueLow: e.target.value});
-    },
-    valueHighChange: function(e) {
-        this.setState({valueHigh: e.target.value});
-    },
-    setValueChange: function(e) {
-        this.setState({setValue: e.target.value});
-    },
-    transferChange: function(e) {
-        this.setState({transfer: e.target.value});
-    },
-    updateData: function() {
-        fetch(server + '/adminBreezeCardData',
-        {method: 'post',
-         headers: {'Content-Type': 'application/json'},
-         body: JSON.stringify({
-             "owner": this.state.owner,
-             "cardNumber": this.state.cardNumber,
-             "valueLow": this.state.valueLow,
-             "valueHigh": this.state.valueHigh,
-             "suspended": this.state.suspended,
-             "sort": this.state.sort
-         })
-        }).then(function(response) {
-            return response.json();
-        }).then(data => this.setState({data : data}));
-    },
     nAdminFunctionalitya : function() { showAdminFunctionality(); }
 });
 
@@ -377,12 +299,12 @@ var SuspendedCards = React.createClass({
 				{ Header: 'Previous Owner', accessor: 'prevOwner'}
 			];
 			var oData = [
-				{ cardNumber: '1446 2121 0808 1229', newOwner: 'John H', dateSuspended: '11-15-2017 4:20pm', prevOwner: 'Alex C' },
+				{ cardNumber: '1446 2121 0808 1229', newOwner: 'John H', dateSuspended: '11-15-2017 4:20pm', prevOwner: 'Alex C' }, 
 				{ cardNumber: '1581 9910 0010 4404', newOwner: 'Ryan A', dateSuspended: '11-20-2017 4:20am', prevOwner: 'Sam C' }
 			];
 			return { columns: oColumns, data: oData };
 		},
-	  	render : function() {
+	  	render : function() { 
 	  		return (
 		    	<div class="StationManagement">
 			    	<h1>Suspended Cards</h1>
@@ -456,7 +378,7 @@ var PassengerFlowReport = React.createClass({
 				    columns={this.state.columns}
 					defaultPageSize={10}
 					sortable={false}
-				  />
+				  />	
             </p>
 	    	<button onClick={this.nAdminFunctionality}>Back</button>
     	</div>
@@ -473,7 +395,7 @@ var StationManagement = React.createClass({
                 accessor: 'editButton',
                 Cell: (row) => (
                     <div>
-						<input type="radio" name="stationtype" value="select"
+						<input type="radio" name="stationtype" value="select" 
 								onClick={() => this.selectRow(row)}/>
 					</div>
                 ),
@@ -503,7 +425,7 @@ var StationManagement = React.createClass({
 				    data={this.state.data}
 				    columns={this.state.columns}
 					sortable={false}
-				  />
+				  />	
 		    	<button onClick={this.nViewStation}>View Station</button>
 		    	<button onClick={this.nCreateStation}>Create Station</button>
 		    	<br />
@@ -511,11 +433,11 @@ var StationManagement = React.createClass({
 	    	</div>
     	);
 	},
-	nViewStation : function() {
+	nViewStation : function() { 
 		if (!this.state.selectedRow) {
 			alert('You need to choose a station before you can view it.');
 		} else {
-			showViewStation(this.state.selectedRow.StopID);
+			showViewStation(this.state.selectedRow.StopID); 
 		}
 	},
 	nCreateStation : function() { showCreateStation(); },
@@ -535,17 +457,17 @@ var ViewStation = React.createClass({
 	    	<p>Nearest Intersection: {this.state.intersection}</p>
 	    	<p>Should the station be open or closed?</p>
 			<form>
-				<input type="radio" name="open" value="open" checked={this.state.open=='open'}
+				<input type="radio" name="open" value="open" checked={this.state.open=='open'} 
 						onChange={this.openChange} />
 				<label>Open</label><br />
-				<input type="radio" name="open" value="closed" checked={this.state.open=='closed'}
+				<input type="radio" name="open" value="closed" checked={this.state.open=='closed'} 
 						onChange={this.openChange} />
 				<label>Closed</label><br />
 			</form>
 			<button onClick={this.updateOpen}>Update</button>
 	    	<br /><br /><button onClick={this.nStationManagement}>Back to Station Management</button>
     	</div>
-    	);
+    	); 
 	},
 	componentDidMount : function() {
 		this.refreshState();
@@ -560,7 +482,7 @@ var ViewStation = React.createClass({
 			})
 		}).then(function(res){ return res.json(); })
 		.then(data => this.setState(
-			{
+			{ 
 					name: data.Name, id: data.StopID, fare: data.EnterFare,
 					open: (data.ClosedStatus) ? "closed" : "open",
 					intersection: (data.intersection != null) ? data.intersection
@@ -630,7 +552,7 @@ var CreateStation = React.createClass({
 			<p>{this.state.message}</p>
 	    	<br /><br /><button onClick={this.nStationManagement}>Back to Station Management</button>
     	</div>
-    	);
+    	); 
 	},
 	nameChange : function(e) {
 		this.setState({ name: e.target.value} );

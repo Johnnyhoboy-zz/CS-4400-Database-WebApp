@@ -43,8 +43,8 @@ app.post('/createStation', (req, res) => {
         isTrain = 1;
     if (req.body.ClosedStatus == 'open')
         isClosed = 0;
-
-    dbconn.createStation(req.body.StopID, req.body.Name,
+    
+    dbconn.createStation(req.body.StopID, req.body.Name, 
         req.body.EnterFare, isClosed, isTrain, function(errMsg) {
         if (errMsg != '') {
             res.send({ 'message': errMsg });
@@ -75,21 +75,5 @@ app.get('/test', (req, res) => {
         res.send(result);
     });
 });
-
-app.post('/adminBreezeCardData', (req, res) => {
-    if(req.body.suspended) {
-        dbconn.adminBreezecardDataSuspended(req.body.owner, req.body.cardNumber, req.body.valueLow, req.body.valueHigh, req.body.sort, function(result) {
-            res.send(result);
-        });
-    } else {
-        console.log(req.body.sort);
-        console.log(req.body.owner);
-        dbconn.adminBreezecardData(req.body.owner, req.body.cardNumber, req.body.valueLow, req.body.valueHigh, req.body.sort, function(result) {
-            console.log(result);
-            res.send(result);
-        });
-    }
-});
-
 
 export default app;
