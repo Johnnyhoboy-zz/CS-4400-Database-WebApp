@@ -224,13 +224,14 @@ var BreezecardManagement = React.createClass({
                 maxWidth: 40
             },
             { Header: 'Card #', accessor: 'BreezecardNum' },
-            { Header: 'Value', accessor: 'Value' },
+
+            { Header: 'Value ($)', accessor: 'Value' },
             { Header: 'Owner', accessor: 'BelongsTo' }
         ];
 
         return { columns: oColumns, data: [], owner: '', suspended: '', cardNumber: '',
                  valueLow: '', valueHigh: '', setValue: '', transfer: '', sort: "BreezecardNum",
-                 selected: breezeCardManagementOptions[0], descending: ''};
+                 selected: breezeCardManagementOptions[0], descending: '', selectedRow: null};
     },
     selectRow : function(row) {
         this.setState( {selectedRow: row.original} );
@@ -305,15 +306,14 @@ var BreezecardManagement = React.createClass({
                 <span style={style5}>
                     <input type="text" name="card_value_textbox" onChange={this.setValueChange}/>
                 </span>
-                <button>Set Value of Selected Card</button>
+                <button onClick={this.changeCardValue}>Set Value of Selected Card</button>
             </p>
             <p>
                 <span style={style5}>
                     <input type="text" name="transfer_card_textbox" onChange={this.transferChange}/>
                 </span>
-                <button>Transfer Selected Card</button>
+                <button onClick={this.transferCard}>Transfer Selected Card</button>
             </p>
-
 
             <button onClick={this.nAdminFunctionalitya}>Back</button>
         </div>
@@ -377,6 +377,43 @@ var BreezecardManagement = React.createClass({
         }).then(function(response) {
             return response.json();
         }).then(data => this.setState({data : data}));
+    },
+    changeCardValue: function() {
+        if (!this.state.selectedRow) {
+            alert('You need to select a breezecard to change the value!');
+        } else {
+            fetch(server + '/adminBreezeCardValueChange',
+                {method: 'post',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    "breezecardNumber": this.state.selectedRow.BreezecardNum,
+                    "cardValue": this.state.setValue
+                })
+            }).then(this.updateData()).then(function(response) {
+                return response.json();
+            }).then(data => {
+                if (data.message == 'error') {
+                    alert('The field for breezecard value is not a number!');
+                }
+            });
+        }
+    },
+    transferCard: function() {
+        fetch(server + '/adminBreezecardTransfer',
+            {method: 'post',
+             headers: {'Content-Type': 'application/json'},
+             body: JSON.stringify({
+                "cardNumber": this.state.selectedRow.BreezecardNum,
+                "originalOwner": this.state.selectedRow.BelongsTo,
+                "newOwner": this.state.transfer
+               })
+             }).then(this.updateData()).then(function(response) {
+                return response.json();
+             }).then(data => {
+                if (data.message == 'error') {
+                    alert('The entered username is not a passenger!');
+                }
+             }).then(this.updateData());
     },
     nAdminFunctionalitya : function() { showAdminFunctionality(); }
 });

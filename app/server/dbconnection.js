@@ -117,6 +117,54 @@ var adminBreezecardDataSuspended = function(owner, cardNumber, valueLow, valueHi
     });
 };
 
+var adminBreezecardValueChange = function(cardNumber, value) {
+    var sql = "UPDATE Breezecard as b " +
+              "SET b.Value = ? " +
+              "WHERE b.BreezecardNum = ?;";
+    conn.query(sql, [value, cardNumber], function(err, result, fields) {
+        if(err) throw err;
+  });
+};
+
+var adminBreezecardCheckNumBreezecards = function(cardNumber, callback) {
+    var sql = "SELECT COUNT(*) AS count " +
+              "FROM (Breezecard AS b JOIN User AS u ON (b.BelongsTo = u.Username)) " +
+              "WHERE (u.Username = (SELECT c.BelongsTo " +
+                                   "FROM Breezecard as c " +
+                                   "WHERE c.BreezecardNum = ?));";
+    conn.query(sql, [cardNumber], function(err, result, fields) {
+        if(err) throw err;
+        callback(result);
+    });
+};
+
+var insertNewBreezecard = function(cardNumber, owner, callback) {
+    var sql = "INSERT INTO Breezecard VALUES (?, 0, ?);";
+    console.log(owner);
+    conn.query(sql, [cardNumber, owner], function(err, result, fields) {
+        if(err) {
+            callback(err.sqlMessage);
+        } else {
+            callback('');
+        }
+    });
+};
+
+var transferBreezecard = function(cardNumber, owner, callback) {
+    console.log('transfer to:');
+    console.log(owner);
+    var sql = "UPDATE Breezecard as b " +
+              "SET b.BelongsTo = ?" +
+              "WHERE b.BreezecardNum = ?;";
+    conn.query(sql, [owner, cardNumber], function(err, result, fields) {
+        if(err) {
+            callback(err.sqlMessage);
+        } else {
+            callback('');
+        }
+    });
+}
+
 var test = function() { console.log('test successful'); };
 
 module.exports.test = test;
@@ -129,3 +177,7 @@ module.exports.updateOpen = updateOpen;
 module.exports.updateFare = updateFare;
 module.exports.adminBreezecardData = adminBreezecardData;
 module.exports.adminBreezecardDataSuspended = adminBreezecardDataSuspended;
+module.exports.adminBreezecardValueChange = adminBreezecardValueChange;
+module.exports.adminBreezecardCheckNumBreezecards = adminBreezecardCheckNumBreezecards;
+module.exports.insertNewBreezecard = insertNewBreezecard;
+module.exports.transferBreezecard = transferBreezecard;

@@ -81,7 +81,6 @@ var updateFare = function updateFare(id, fare) {
 var adminBreezecardData = function adminBreezecardData(owner, cardNumber, valueLow, valueHigh, sort, desc, callback) {
     var sql = "SELECT * FROM Breezecard AS b " + "WHERE (? = \'\' OR b.BelongsTo = ?) " + "AND   (? = \'\' OR b.BreezecardNum = ?) " + "AND   (? = \'\' OR b.Value >= ?) " + "AND   (? = \'\' OR b.Value <= ?) " + "AND   (b.BreezecardNum NOT IN (SELECT c.BreezecardNum " + "FROM Conflict AS c)) " + "ORDER BY " + sort + " " + desc;
     conn.query(sql, [owner, owner, cardNumber, cardNumber, valueLow, valueLow, valueHigh, valueHigh], function (err, result, fields) {
-        console.log(sql);
         if (err) throw err;
         callback(result);
     });
@@ -92,6 +91,46 @@ var adminBreezecardDataSuspended = function adminBreezecardDataSuspended(owner, 
     conn.query(sql, [owner, owner, cardNumber, cardNumber, valueLow, valueLow, valueHigh, valueHigh, owner, owner, cardNumber, cardNumber, valueLow, valueLow, valueHigh, valueHigh], function (err, result, fields) {
         if (err) throw err;
         callback(result);
+    });
+};
+
+var adminBreezecardValueChange = function adminBreezecardValueChange(cardNumber, value) {
+    var sql = "UPDATE Breezecard as b " + "SET b.Value = ? " + "WHERE b.BreezecardNum = ?;";
+    conn.query(sql, [value, cardNumber], function (err, result, fields) {
+        if (err) throw err;
+    });
+};
+
+var adminBreezecardCheckNumBreezecards = function adminBreezecardCheckNumBreezecards(cardNumber, callback) {
+    var sql = "SELECT COUNT(*) AS count " + "FROM (Breezecard AS b JOIN User AS u ON (b.BelongsTo = u.Username)) " + "WHERE (u.Username = (SELECT c.BelongsTo " + "FROM Breezecard as c " + "WHERE c.BreezecardNum = ?));";
+    conn.query(sql, [cardNumber], function (err, result, fields) {
+        if (err) throw err;
+        callback(result);
+    });
+};
+
+var insertNewBreezecard = function insertNewBreezecard(cardNumber, owner, callback) {
+    var sql = "INSERT INTO Breezecard VALUES (?, 0, ?);";
+    console.log(owner);
+    conn.query(sql, [cardNumber, owner], function (err, result, fields) {
+        if (err) {
+            callback(err.sqlMessage);
+        } else {
+            callback('');
+        }
+    });
+};
+
+var transferBreezecard = function transferBreezecard(cardNumber, owner, callback) {
+    console.log('transfer to:');
+    console.log(owner);
+    var sql = "UPDATE Breezecard as b " + "SET b.BelongsTo = ?" + "WHERE b.BreezecardNum = ?;";
+    conn.query(sql, [owner, cardNumber], function (err, result, fields) {
+        if (err) {
+            callback(err.sqlMessage);
+        } else {
+            callback('');
+        }
     });
 };
 
@@ -109,3 +148,7 @@ module.exports.updateOpen = updateOpen;
 module.exports.updateFare = updateFare;
 module.exports.adminBreezecardData = adminBreezecardData;
 module.exports.adminBreezecardDataSuspended = adminBreezecardDataSuspended;
+module.exports.adminBreezecardValueChange = adminBreezecardValueChange;
+module.exports.adminBreezecardCheckNumBreezecards = adminBreezecardCheckNumBreezecards;
+module.exports.insertNewBreezecard = insertNewBreezecard;
+module.exports.transferBreezecard = transferBreezecard;
