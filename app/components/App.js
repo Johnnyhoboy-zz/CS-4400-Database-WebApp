@@ -229,7 +229,7 @@ var BreezecardManagement = React.createClass({
             { Header: 'Owner', accessor: 'BelongsTo' }
         ];
 
-        return { columns: oColumns, data: [], owner: '', suspended: '', cardNumber: '',
+        return { columns: oColumns, data: [], owner: '', suspended: false, cardNumber: '',
                  valueLow: '', valueHigh: '', setValue: '', transfer: '', sort: "BreezecardNum",
                  selected: breezeCardManagementOptions[0], descending: '', selectedRow: null};
     },
@@ -257,30 +257,30 @@ var BreezecardManagement = React.createClass({
                     Owner:
                 </text>
                 <span style={style5}>
-                    <input type="text" name="owner_textbox" onChange={this.ownerChange}/>
+                    <input type="text" name="owner_textbox" onChange={this.ownerChange} value={this.state.owner}/>
                 </span>
-                <input type="checkbox" name="suspended_checkbox" id="suspended_checkbox" onClick={this.suspendedChange} />
+                <input type="checkbox" name="suspended_checkbox" id="suspended_checkbox" onClick={this.suspendedChange} checked={this.state.suspended}/>
                 <label htmlFor="suspended_checkbox"> Show Suspended Cards </label>
             </p>
             <p>
                 <text style={style5}>
                     Card Number:
                  </text>
-                <input type="text" name="card_number_textbox" onChange={this.cardNumberChange} />
+                <input type="text" name="card_number_textbox" onChange={this.cardNumberChange} value={this.state.cardNumber}/>
                 <span style={style40}>
-                    <button> Reset </button>
+                    <button onClick={this.resetFields}> Reset </button>
                 </span>
             </p>
             <span style={style5}>
                 <text style={style5}>
                     Value between:
                 </text>
-                <input type="text" name="value_start_textbox" size='6' onChange={this.valueLowChange}/>
+                <input type="text" name="value_start_textbox" size='6' onChange={this.valueLowChange} value={this.state.valueLow}/>
             </span>
             <text style={style5}>
                 and:
             </text>
-            <input type="text" name="value_end_textbox" size='6' onChange={this.valueHighChange}/>
+            <input type="text" name="value_end_textbox" size='6' onChange={this.valueHighChange} value={this.state.valueHigh}/>
             <span style={style40}>
                     <button onClick={this.updateData}> Update Filter </button>
             </span>
@@ -289,11 +289,11 @@ var BreezecardManagement = React.createClass({
                 Order by:
             </text>
             <div style={{width: "250px"}}>
-                <Dropdown options={breezeCardManagementOptions} onChange={this.sortChange} value={defaultOption}/>
+                <Dropdown options={breezeCardManagementOptions} onChange={this.sortChange} value={defaultOption} />
                 <text style={style5}>
                     Sort Descending?
                 </text>
-                <input type="checkbox" name="descending_checkbox" id="descending_checkbox" onClick={this.descendingChange} />
+                <input type="checkbox" name="descending_checkbox" id="descending_checkbox" onClick={this.descendingChange} checked={this.state.descending} />
             </div>
             <p></p>
             <ReactTable
@@ -304,13 +304,13 @@ var BreezecardManagement = React.createClass({
                     defaultSortMethod={undefined}/>
             <p>
                 <span style={style5}>
-                    <input type="text" name="card_value_textbox" onChange={this.setValueChange}/>
+                    <input type="text" name="card_value_textbox" onChange={this.setValueChange} value={this.state.setValue}/>
                 </span>
                 <button onClick={this.changeCardValue}>Set Value of Selected Card</button>
             </p>
             <p>
                 <span style={style5}>
-                    <input type="text" name="transfer_card_textbox" onChange={this.transferChange}/>
+                    <input type="text" name="transfer_card_textbox" onChange={this.transferChange} value={this.state.transfer}/>
                 </span>
                 <button onClick={this.transferCard}>Transfer Selected Card</button>
             </p>
@@ -417,8 +417,14 @@ var BreezecardManagement = React.createClass({
                 this.updateData();
              });
     },
+    resetFields: function() {
+        this.setState({owner: '', suspended: false, cardNumber: '', valueLow: '', valueHigh: '',
+                       sort: "BreezecardNum", descending: false, selectedRow: null,
+                       selected: breezeCardManagementOptions[0], setValue: '', transfer: ''});
+    },
     nAdminFunctionalitya : function() { showAdminFunctionality(); }
 });
+
 
 var SuspendedCards = React.createClass({
     getInitialState : function() {
