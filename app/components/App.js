@@ -99,6 +99,9 @@ var Registration = React.createClass({
 		} else if (this.state.email.includes("@") == false || this.state.email.includes(".") == false) {
 			alert('Please make sure your email is valid');
 			return;
+		} else if (this.state.type != "new" && (this.state.breezeCardNum.length <=15 || this.state.breezeCardNum.length > 16)) {
+			alert('Please input a valid 16 digit Breeze Card');
+			return;
 		}
 		fetch(server + '/registerAccount', {
 			method: 'post',
@@ -110,6 +113,8 @@ var Registration = React.createClass({
 				 "BreezecardNum": this.state.breezeCardNum
 			})
 		}).then(function(res){ return res.json(); }).then(function(data){ alert( data.message ) });
+	
+	
 	},
 	
 	

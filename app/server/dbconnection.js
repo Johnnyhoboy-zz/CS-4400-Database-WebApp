@@ -90,14 +90,26 @@ var updateOwner = function(username, breezeCardNum) {
     });
 };
 
-var registerUser = function(Username, password, email) {
-    var sql = "INSERT INTO Username(username, password, IsAdmin) VALUES (?, ?, ?);";
-    conn.query(sql, [username, password, 0], function(err, result, fields) {
+var registerUser = function(Username, Password) {
+    var sql = "INSERT INTO User(Username, Password, IsAdmin) VALUES (?, ?, ?);";
+    conn.query(sql, [Username, Password, 0], function(err, result, fields) {
         if (err) throw err;
     });
 }
 
+var registerPassenger = function(Username, Email) {
+    var sql = "INSERT INTO Passenger(Username, Email) VALUES (?, ?);";
+    conn.query(sql, [Username, Email], function(err, result, fields) {
+        if (err) throw err;
+    });
+}
 
+var registerBreezecard = function(BreezecardNum, Username) {
+    var sql = "INSERT INTO Breezecard(BreezecardNum, Value, BelongsTo) VALUES (?, ?, ?);";
+    conn.query(sql, [BreezecardNum, 0.00, Username], function(err, result, fields) {
+        if (err) throw err;
+    });
+}
 var test = function() { console.log('test successful'); };
 
 module.exports.test = test;
@@ -111,3 +123,5 @@ module.exports.updateFare = updateFare;
 module.exports.suspendedCardsData = suspendedCardsData;
 module.exports.updateOwner = updateOwner;
 module.exports.registerUser = registerUser;
+module.exports.registerPassenger = registerPassenger;
+module.exports.registerBreezecard = registerBreezecard;
