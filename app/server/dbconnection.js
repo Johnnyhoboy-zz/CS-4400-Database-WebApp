@@ -174,12 +174,12 @@ var passengerFlowData = function(start, end, sort, desc, callback) {
                             "WHERE s.StopID IN (SELECT s.StopID " +
                                                "FROM Trip as t " +
                                                "WHERE (s.StopID = t.EndsAt OR s.StopID = t.StartsAt) " +
-                                               "AND (t.StartTIme BETWEEN ? AND ?))) as StationNames " +
+                                               "AND (t.StartTime BETWEEN ? AND ?))) as StationNames " +
                         "LEFT JOIN " +
                             "(SELECT COUNT(*) as pIn, s.StopID, SUM(t.Tripfare) as fare " +
                             "FROM Station as s, Trip as t " +
                             "WHERE s.StopID = t.StartsAt " +
-                            "AND (t.StartTIme BETWEEN ? AND ?) " +
+                            "AND (t.StartTime BETWEEN ? AND ?) " +
                             "GROUP BY s.StopID) as Entry " +
                         "ON Entry.StopID = StationNames.StopID " +
                     ") " +
@@ -187,7 +187,7 @@ var passengerFlowData = function(start, end, sort, desc, callback) {
                         "(SELECT COUNT(*) as pOut, s.StopID " +
                         "FROM Station as s, Trip as t " +
                         "WHERE s.StopID = t.EndsAt " +
-                        "AND (t.StartTIme BETWEEN ? AND ?) " +
+                        "AND (t.StartTime BETWEEN ? AND ?) " +
                         "GROUP BY s.StopID) as Exiting " +
                     "ON Exiting.StopID = StationNames.StopID " +
                 ") " +

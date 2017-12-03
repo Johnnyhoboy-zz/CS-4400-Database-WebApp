@@ -119,7 +119,6 @@ app.post('/adminBreezecardTransfer', function (req, res) {
         dbconn.transferBreezecard(req.body.cardNumber, req.body.newOwner, function (err) {
             if (err == '') {
                 if (count == 1) {
-                    console.log('count is 1');
                     insertBreezecard(req.body.originalOwner);
                 }
                 res.send({ 'message': 'success' });
