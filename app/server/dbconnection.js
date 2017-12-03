@@ -140,7 +140,6 @@ var adminBreezecardCheckNumBreezecards = function(cardNumber, callback) {
 
 var insertNewBreezecard = function(cardNumber, owner, callback) {
     var sql = "INSERT INTO Breezecard VALUES (?, 0, ?);";
-    console.log(owner);
     conn.query(sql, [cardNumber, owner], function(err, result, fields) {
         if(err) {
             callback(err.sqlMessage);

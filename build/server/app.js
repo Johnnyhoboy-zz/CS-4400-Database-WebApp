@@ -150,14 +150,13 @@ function insertBreezecard(owner) {
 app.post('/passengerFlowData', function (req, res) {
     var start = req.body.timeStart;
     var end = req.body.timeEnd;
-    console.log(start);
-    console.log(end);
     if (start == '') {
         start = '1000/01/01 00:00:00';
     }
     if (end == '') {
-        end = '9999/12/31 00:00:00';
+        end = '9999/12/31 23:59:59';
     }
+
     dbconn.passengerFlowData(start, end, req.body.sort, req.body.desc, function (result) {
         res.send(result);
     });

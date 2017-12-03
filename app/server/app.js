@@ -111,7 +111,6 @@ app.post('/adminBreezecardTransfer', (req, res) => {
         dbconn.transferBreezecard(req.body.cardNumber, req.body.newOwner, function(err) {
             if(err == '') {
                 if (count == 1) {
-                    console.log('count is 1');
                     insertBreezecard(req.body.originalOwner);
                 }
                 res.send({'message':'success'});
@@ -143,17 +142,18 @@ function insertBreezecard(owner) {
 app.post('/passengerFlowData', (req, res) => {
     var start = req.body.timeStart;
     var end = req.body.timeEnd;
-    console.log(start);
-    console.log(end);
     if (start == '') {
         start = '1000/01/01 00:00:00';
     }
-    if(end == '') {
-        end = '9999/12/31 00:00:00';
+    if (end == '') {
+         end = '9999/12/31 23:59:59';
     }
+
     dbconn.passengerFlowData(start, end, req.body.sort, req.body.desc, function(result) {
         res.send(result);
     });
 });
+
+
 
 export default app;

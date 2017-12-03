@@ -472,7 +472,7 @@ var PassengerFlowReport = React.createClass({
             { Header: 'Revenue', accessor: 'revenue'}
         ];
         return { columns: oColumns, data: [], descending: '', descendingCheck: false, selected: passengerFlowOptions[0], timeStart: '',
-                 timeEnd: '', sort: 'stationName'};
+                 timeEnd: '', sort: 'stationName', warning_text: ''};
     },
     render : function() {
         const style5 = {
@@ -496,7 +496,7 @@ var PassengerFlowReport = React.createClass({
                     <input type="datetime-local" name="start_time_textbox" onChange={this.startChange} value={this.state.timeStart}/>
                 </span>
                 <span style={style5}>
-                    <button onClick={this.updateData}>Update</button>
+                    <button onClick={this.updatePress}>Update</button>
                 </span>
                 <button onClick={this.resetData}>Reset</button>
             </p>
@@ -506,6 +506,11 @@ var PassengerFlowReport = React.createClass({
                         End Time
                     </text>
                     <input type="datetime-local" name="end_time_textbook" onChange={this.endChange} value={this.state.timeEnd}/>
+                    <span style={{paddingLeft: "15px"}}>
+                        <text id = 'text_warning' style = {{color: 'red'}}>
+                            {this.state.warning_text}
+                        </text>
+                    </span>
                 </span>
             </p>
              <div style={{width: "250px"}}>
@@ -557,6 +562,20 @@ var PassengerFlowReport = React.createClass({
         this.setState({selected: e});
 
     },
+    updatePress: function() {
+        if (this.state.timeStart == '') {
+            if (this.state.timeEnd == '') {
+                this.setState({warning_text: "Start and end time are either invalid or blank. Queried with no time restriction." });
+            } else {
+                this.setState({warning_text: "Start time is either invalid or blank. Queried with no start time restriction." });
+            }
+        } else if (this.state.timeEnd == '') {
+            this.setState({warning_text: "End time is either invalid or blank. Queried with no end time restriction." });
+        } else {
+            this.setState({warning_text : ''});
+        }
+        this.updateData();
+    },
     updateData : function() {
         fetch(server + '/passengerFlowData',
         {method: 'post',
@@ -572,8 +591,10 @@ var PassengerFlowReport = React.createClass({
         }).then(data => this.setState({data : data}));
     },
     resetData: function() {
-        this.setState({ columns: oColumns, data: [], descending: '', descendingCheck: false, selected: passengerFlowOptions[0], timeStart: '',
-                 timeEnd: '', sort: 'stationName'});
+        this.setState({data: [], descending: '', descendingCheck: false, selected: passengerFlowOptions[0], timeStart: '',
+                 timeEnd: '', sort: 'stationName', warning_text: ''}, function() {
+                        this.updateData();
+                 });
     },
     nAdminFunctionality : function() { showAdminFunctionality(); }
 });
