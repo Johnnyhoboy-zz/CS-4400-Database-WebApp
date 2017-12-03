@@ -100,9 +100,21 @@ app.post('/updateOwner', function (req, res) {
 app.post('/registerAccount', function (req, res) {
     var hashedPass = hash.MD5(req.body.Password.toString());
     if (req.body.Type == "new") {
-        var random = generateBreezecard();
         dbconn.registerUser(req.body.Username, hashedPass);
         dbconn.registerPassenger(req.body.Username, req.body.Email);
+        var random = generateBreezecard();
+        var count;
+        do {
+            dbconn.checkBreezecard(random, function (result) {
+                count = result[0].count;
+                console.log(count);
+                if (count == 1) {
+                    console.log('count is 1');
+                    random = generateBreezecard();
+                }
+            });
+        } while (count == 1);
+
         dbconn.registerBreezecard(random, req.body.Username);
     } else {
         dbconn.registerUser(req.body.Username, hashedPass);

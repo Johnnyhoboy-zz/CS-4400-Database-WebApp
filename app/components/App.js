@@ -53,10 +53,10 @@ var Registration = React.createClass({
 			  <input type="text" onChange={this.confirmPassChange} /><br />
 			  
 			  <h3>Breeze Card</h3>
-			  <input type="radio" name="useBreezeCard" checked={this.state.type!='new'} onChange={this.typeChange}/><label>Use my existing Breeze Card</label><br />
+			  <input type="radio" name="UseBreezeCard" value="old" checked={this.state.type!='new'} onChange={this.typeChange}/><label>Use my existing Breeze Card</label><br />
 			  <label>Card Number: </label>
 			  <input type="text" onChange={this.cardChange}/><br />
-			  <input type="radio" name="UseBreezeCard" checked={this.state.type=='new'} onChange={this.typeChange}/><label>Get a new Breeze Card</label><br />
+			  <input type="radio" name="UseBreezeCard" value="new" checked={this.state.type=='new'} onChange={this.typeChange}/><label>Get a new Breeze Card</label><br />
 	    	</form>
 	    	<hr />
 	        <br />

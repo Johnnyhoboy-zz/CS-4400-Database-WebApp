@@ -104,12 +104,21 @@ var registerPassenger = function(Username, Email) {
     });
 }
 
-var registerBreezecard = function(BreezecardNum, Username) {
+var registerBreezecard = function(BreezecardNum, Username, callback) {
     var sql = "INSERT INTO Breezecard(BreezecardNum, Value, BelongsTo) VALUES (?, ?, ?);";
     conn.query(sql, [BreezecardNum, 0.00, Username], function(err, result, fields) {
         if (err) throw err;
     });
 }
+
+var checkBreezecard = function(BreezecardNum, callback) {
+    var sql = "SELECT COUNT(*) FROM Breezecard as b WHERE b.BreezecardNum = ?";
+    conn.query(sql, [BreezecardNum], function(err, result, fields) {
+        if (err) throw err;
+        callback(result);
+    });
+}
+
 var test = function() { console.log('test successful'); };
 
 module.exports.test = test;
@@ -125,3 +134,4 @@ module.exports.updateOwner = updateOwner;
 module.exports.registerUser = registerUser;
 module.exports.registerPassenger = registerPassenger;
 module.exports.registerBreezecard = registerBreezecard;
+module.exports.checkBreezecard = checkBreezecard;
