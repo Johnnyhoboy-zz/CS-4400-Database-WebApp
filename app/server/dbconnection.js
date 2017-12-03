@@ -113,6 +113,51 @@ var adminBreezecardDataSuspended = function(owner, cardNumber, valueLow, valueHi
 };
 
 
+var passengerFlowData = function(start, end, sort, desc, callback) {
+    var sql = "SELECT StationNames.Name as stationName, COALESCE(Entry.pIn, 0) " +
+              "as passIn, COALESCE(Exiting.pOut, 0) as passOut, COALESCE(Entry.pIn, 0) " +
+              "- COALESCE(Exiting.pOut, 0) as flow, Coalesce(Entry.fare, 0.00) as revenue " +
+              "FROM " +
+              "( " +
+                    "( " +
+                        "(SELECT s.Name, s.StopID " +
+                            "FROM Station as s " +
+                            "WHERE s.StopID IN (SELECT s.StopID " +
+                                               "FROM Trip as t " +
+                                               "WHERE (s.StopID = t.EndsAt OR s.StopID = t.StartsAt) " +
+                                               "AND (t.StartTIme BETWEEN ? AND ?))) as StationNames " +
+                        "LEFT JOIN " +
+                            "(SELECT COUNT(*) as pIn, s.StopID, SUM(t.Tripfare) as fare " +
+                            "FROM Station as s, Trip as t " +
+                            "WHERE s.StopID = t.StartsAt " +
+                            "AND (t.StartTIme BETWEEN ? AND ?) " +
+                            "GROUP BY s.StopID) as Entry " +
+                        "ON Entry.StopID = StationNames.StopID " +
+                    ") " +
+                    "LEFT JOIN " +
+                        "(SELECT COUNT(*) as pOut, s.StopID " +
+                        "FROM Station as s, Trip as t " +
+                        "WHERE s.StopID = t.EndsAt " +
+                        "AND (t.StartTIme BETWEEN ? AND ?) " +
+                        "GROUP BY s.StopID) as Exiting " +
+                    "ON Exiting.StopID = StationNames.StopID " +
+                ") " +
+                "ORDER BY " + sort + ' ' + desc + ';';
+
+    conn.query(sql, [start, end, start, end, start, end], function(err, result, fields) {
+        if(err) throw err;
+        callback(result);
+    });
+}
+
+
+var removeCard = function(breezecard) {
+    var sql = "UPDATE Breezecard SET BelongsTo = null WHERE BreezecardNum = ?";
+    conn.query(sql,[breezecard], function(err, result, fields) {
+        if (err) throw err;
+    });
+}
+
 var stationListData = function(callback) {
     var sql = "SELECT Name FROM Station WHERE ClosedStatus = false";
     conn.query(sql, function(err, result, fields) {
@@ -130,17 +175,16 @@ var passengerCardData = function(callback) {
 };
 
 var addValue = function(value, card) {
-    var sql = "UPDATE Breezecard SET Value = Value + ? WHERE BreezecardNum=?";
+    var sql = "UPDATE Breezecard SET Value = Value + ? WHERE BreezecardNum=? AND Value + ? <= 1000";
     conn.query(sql, [value, card], function(err, result, fields) {
         if (err) throw err;
     });
 };
 
-var tripHistoryData = function(start, end, callback) {
-    var sql = "SELECT StartTime, StartsAt, EndsAt, Tripfare, BreezecardNum FROM Trip WHERE StartsAt > ? AND StartsAt < ?";
-    conn.query(sql, [start, end], function(err, result, fields) {
+var tripHistoryData = function(callback) {
+    var sql = "SELECT StartTime, StartsAt, EndsAt, Tripfare, BreezecardNum FROM Trip";
+    conn.query(sql, function(err, result, fields) {
         if (err) throw err;
-        console.log(result);
         callback(result);
     });
 };
@@ -151,16 +195,18 @@ var addCard = function(breezecard) {
         if (err) throw err;
     });
 };
-/*
+
 var updateHistory = function(start, end, callback) {
-    var sql = "SELECT StartTime, StartsAt, EndsAt, Tripfare, BreezecardNum FROM Trip WHERE StartsAt > ? AND StartsAt < ?";
+    var sql = "SELECT StartTime, StartsAt, EndsAt, Tripfare, BreezecardNum FROM Trip" + 
+    " WHERE (StartTime BETWEEN ? AND ?)";
     conn.query(sql, [start, end], function(err, result, fields) {
         if (err) throw err;
-        console.log(result);
+        console.log(start);
+        console.log(end);
         callback(result);
     });
 };
-*/
+
 module.exports.test = test;
 module.exports.stationManagementData = stationManagementData;
 module.exports.createStation = createStation;
@@ -171,9 +217,11 @@ module.exports.updateOpen = updateOpen;
 module.exports.updateFare = updateFare;
 module.exports.adminBreezecardData = adminBreezecardData;
 module.exports.adminBreezecardDataSuspended = adminBreezecardDataSuspended;
+module.exports.passengerFlowData = passengerFlowData;
 module.exports.addCard = addCard;
 module.exports.addValue = addValue;
 module.exports.passengerCardData = passengerCardData;
 module.exports.tripHistoryData = tripHistoryData;
-//module.exports.updateHistory = updateHistory;
+module.exports.updateHistory = updateHistory;
 module.exports.stationListData = stationListData;
+module.exports.removeCard = removeCard;
