@@ -89,6 +89,21 @@ app.post('/adminBreezeCardData', (req, res) => {
     }
 });
 
+app.post('/passengerFlowData', (req, res) => {
+    var start = req.body.timeStart;
+    var end = req.body.timeEnd;
+    console.log(start);
+    console.log(end);
+    if (start == '') {
+        start = '1000/01/01 00:00:00';
+    }
+    if(end == '') {
+        end = '9999/12/31 00:00:00';
+    }
+    dbconn.passengerFlowData(start, end, req.body.sort, req.body.desc, function(result) {
+        res.send(result);
+    });
+});
 
 app.get('/stationListData', (req, res) => {
     dbconn.stationListData( function(result) {
@@ -99,12 +114,17 @@ app.get('/stationListData', (req, res) => {
 
 app.get('/passengerCardData', (req, res) => {
     dbconn.passengerCardData( function(result) {
+        console.log(result);
         res.send(result);
     });
 });
 
-app.post('/tripHistoryData', (req, res) => {
-    dbconn.tripHistoryData(req.body.Start, req.body.End, function(result) {
+app.post('/removeCard', (req, res) => {
+    dbconn.removeCard(req.body.BreezecardNum);
+});
+
+app.get('/tripHistoryData', (req, res) => {
+    dbconn.tripHistoryData( function(result) {
         console.log(result);
         res.send(result);
     });
@@ -117,11 +137,20 @@ app.post('/addCard', (req, res) => {
 app.post('/addValue', (req, res) => {
      dbconn.addValue(req.body.Value, req.body.Card);
 });
-/*
-app.get('/updateHistory', (req, res) => {
-     dbconn.addValue(req.body.start, req.body.end);
-     //console.log(result);
-     res.send(result);
+
+app.post('/updateHistory', (req, res) => {
+var start = req.body.Start;
+    var end = req.body.End;
+    if (start == '') {
+        start = '1000/01/01 00:00:00';
+    }
+    if(end == '') {
+        end = '9999/12/31 00:00:00';
+    }
+     dbconn.updateHistory(start, end, function(result) {
+        console.log(result);
+        res.send(result);
+     });
 });
-*/
+
 export default app;
