@@ -93,7 +93,7 @@ var updateOwner = function updateOwner(Username, BreezeCardNum, callback) {
 
 var loginCheck = function loginCheck(Username, Password, callback) {
     //Check if User and Pass match in database
-    var sql = "SELECT COUNT(*) FROM User as a WHERE a.Username = ? AND a.Password = ?;";
+    var sql = "SELECT COUNT(*) as count FROM User as a WHERE a.Username = ? AND a.Password = ?;";
     conn.query(sql, [Username, Password], function (err, result, fields) {
         if (err) throw err;
         callback(result[0]);

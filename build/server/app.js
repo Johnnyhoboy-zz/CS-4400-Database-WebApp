@@ -102,7 +102,9 @@ app.post('/updateOwner', function (req, res) {
 app.post('/login', function (req, res) {
     var count = 0;
     var count2 = 0;
-    dbconn.loginCheck(req.body.Username, req.body.BreezecardNum, function (result) {
+    var hashedPass = hash.MD5(req.body.Password.toString());
+
+    dbconn.loginCheck(req.body.Username, hashedPass, function (result) {
         count = result[0].count;
         count2 = result[0].count2;
         console.log(count);
