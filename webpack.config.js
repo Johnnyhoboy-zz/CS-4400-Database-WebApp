@@ -19,6 +19,10 @@ module.exports = {
                 query: {
                     presets: ['es2015', 'react']
                 }
+            },
+            {
+                test: /\.css$/,
+                loader: "style-loader!css-loader"
             }
         ]
     },
@@ -29,4 +33,9 @@ module.exports = {
             inject: 'body',
         }),
     ],
+    node: {
+        fs: 'empty',
+        net: 'empty',
+        tls: 'empty'
+      }
 };
