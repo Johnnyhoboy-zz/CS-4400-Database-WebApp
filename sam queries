@@ -1,0 +1,12 @@
+Station Management
+	SELECT Name, StopID, EnterFare, ClosedStatus FROM Station ORDER BY $sortField $descOrder;
+
+View Station
+	SELECT * FROM Station WHERE StopID=$stopId;
+	SELECT * FROM BusStationIntersection WHERE StopID=$stopId;
+	UPDATE Station SET ClosedStatus=$closed WHERE StopID=$stopId;
+	UPDATE Station SET EnterFare=$fare WHERE StopID=$stopId;
+
+Create Station
+	INSERT INTO Station(StopID, Name, EnterFare, ClosedStatus, IsTrain) VALUES ($stopId, $name, $fare, $closed, $isTrain);
+	INSERT INTO BusStationIntersection(StopID, Intersection) VALUES ($stopId, $intersection);
