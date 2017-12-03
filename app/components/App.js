@@ -46,15 +46,12 @@ var LogIn = React.createClass({
 			alert('Please fill out all non-optional fields');
 			return;
 		} 
-		fetch(server + '/registerAccount', {
+		fetch(server + '/login', {
 			method: 'post',
 			headers: {'Content-Type': 'application/json'},
 			body: JSON.stringify({
 				 "Username": this.state.userName,
-				 "Email": this.state.email,
 				 "Password": this.state.password,
-				 "BreezecardNum": this.state.breezeCardNum,
-				 "Type" : this.state.type
 			})
 		}).then(function(res){ return res.json(); }).then(function(data){ alert( data.message ) });
 	
@@ -147,12 +144,12 @@ var Registration = React.createClass({
 				 "BreezecardNum": this.state.breezeCardNum,
 				 "Type" : this.state.type
 			})
-		}).then(function(res){ return res.json(); }).then(function(data){ alert( data.message ) });
+		}).then(function(res){ return res.json(); }).then(function(data){ alert( data.message ) }).then(this.nPassengerFunctionality);
 	
 	
 	},
 	
-	
+	nPassengerFunctionality : function() { showPassengerFunctionality(); },
 	nLogin : function() { showLogIn(); }
 	
 });
@@ -412,7 +409,13 @@ var SuspendedCards = React.createClass({
 			.then(data => this.setState({ data: data })
 			);
 		},
-
+		refreshState : function() {
+				console.log('refreshing state');
+				fetch(server + "/suspendedCardsData")
+				.then(response => response.json())
+				.then(data => this.setState({ data: data })
+				);
+		},
 	  	render : function() { 
 	  		return (
 		    	<div class="SuspensedCardManagement">
@@ -441,8 +444,6 @@ var SuspendedCards = React.createClass({
 
 			var newUser = this.state.selectedRow.Username;
 			var breezeNum = this.state.selectedRow.BreezecardNum;
-			//console.log(newUser);
-			//console.log(breezeNum);
 			fetch(server + '/updateOwner', {
 				method: 'post',
 				headers: {'Content-Type': 'application/json'},
@@ -463,8 +464,6 @@ var SuspendedCards = React.createClass({
 
 			var oldUser = this.state.selectedRow.BelongsTo;
 			var breezeNum = this.state.selectedRow.BreezecardNum;
-			//console.log(oldUser);
-			//console.log(breezeNum);
 			fetch(server + '/updateOwner', {
 				method: 'post',
 				headers: {'Content-Type': 'application/json'},
