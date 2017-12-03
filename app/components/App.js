@@ -389,12 +389,13 @@ var BreezecardManagement = React.createClass({
                     "breezecardNumber": this.state.selectedRow.BreezecardNum,
                     "cardValue": this.state.setValue
                 })
-            }).then(this.updateData()).then(function(response) {
+            }).then(function(response) {
                 return response.json();
             }).then(data => {
                 if (data.message == 'error') {
                     alert('The field for breezecard value is not a number!');
                 }
+                this.updateData();
             });
         }
     },
@@ -407,13 +408,14 @@ var BreezecardManagement = React.createClass({
                 "originalOwner": this.state.selectedRow.BelongsTo,
                 "newOwner": this.state.transfer
                })
-             }).then(this.updateData()).then(function(response) {
+             }).then(function(response) {
                 return response.json();
              }).then(data => {
                 if (data.message == 'error') {
                     alert('The entered username is not a passenger!');
                 }
-             }).then(this.updateData());
+                this.updateData();
+             });
     },
     nAdminFunctionalitya : function() { showAdminFunctionality(); }
 });
