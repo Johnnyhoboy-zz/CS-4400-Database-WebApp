@@ -102,6 +102,8 @@ var Registration = React.createClass({
 		} else if (this.state.type != "new" && (this.state.breezeCardNum.length <=15 || this.state.breezeCardNum.length > 16)) {
 			alert('Please input a valid 16 digit Breeze Card');
 			return;
+		} else if (this.state.type == "new") {
+			
 		}
 		fetch(server + '/registerAccount', {
 			method: 'post',
@@ -110,7 +112,8 @@ var Registration = React.createClass({
 				 "Username": this.state.userName,
 				 "Email": this.state.email,
 				 "Password": this.state.password,
-				 "BreezecardNum": this.state.breezeCardNum
+				 "BreezecardNum": this.state.breezeCardNum,
+				 "Type" : this.state.type
 			})
 		}).then(function(res){ return res.json(); }).then(function(data){ alert( data.message ) });
 	

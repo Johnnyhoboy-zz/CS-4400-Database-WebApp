@@ -90,16 +90,30 @@ app.post('/updateOwner', (req, res) => {
 
 app.post('/registerAccount', (req, res) => {
     var hashedPass = hash.MD5(req.body.Password.toString());
-    if(req.body.type != "new") {
+    if(req.body.Type == "new") {
+        var random = generateBreezecard();
         dbconn.registerUser(req.body.Username, hashedPass);
         dbconn.registerPassenger(req.body.Username, req.body.Email);
-        dbconn.registerBreezecard(req.body.BreezecardNum, req.body.Username);
-
+        dbconn.registerBreezecard(random, req.body.Username);
+    } else {
+        dbconn.registerUser(req.body.Username, hashedPass);
+        dbconn.registerPassenger(req.body.Username, req.body.Email);
+        dbconn.registerBreezecard(req.body.BreezecardNum, req.body.Username); 
     }
+    
+
    
-
-
 });
+
+
+function generateBreezecard() {
+    var breezeNum = '';
+    var i = 0;
+    for(; i < 16; i++) {
+        breezeNum += Math.floor(Math.random() * (10));
+    }
+    return breezeNum;
+}
 
 
 
