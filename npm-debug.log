@@ -1,7 +1,6 @@
 0 info it worked if it ends with ok
 1 verbose cli [ 'C:\\Program Files\\nodejs\\node.exe',
 1 verbose cli   'C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js',
-1 verbose cli   'run',
 1 verbose cli   'start' ]
 2 info using npm@4.1.2
 3 info using node@v7.5.0
@@ -10,7 +9,7 @@
 6 silly lifecycle react-node-boilerplate@1.0.0~prestart: no script for prestart, continuing
 7 info lifecycle react-node-boilerplate@1.0.0~start: react-node-boilerplate@1.0.0
 8 verbose lifecycle react-node-boilerplate@1.0.0~start: unsafe-perm in lifecycle true
-9 verbose lifecycle react-node-boilerplate@1.0.0~start: PATH: C:\Program Files\nodejs\node_modules\npm\bin\node-gyp-bin;C:\Users\John\Documents\School\CS 4400\CS-4400-Database-WebApp\node_modules\.bin;C:\Users\John\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\local\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Users\John\bin;C:\Users\John\Documents\gradle-3.3\bin;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\ProgramData\Oracle\Java\javapath;C:\Program Files\Java\jdk1.8.0_60\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0;C:\Program Files\Microsoft SQL Server\120\Tools\Binn;C:\Program Files\Microsoft SQL Server\130\Tools\Binn;C:\Program Files (x86)\GtkSharp\2.12\bin;C:\Program Files (x86)\Windows Live\Shared;C:\Program Files\Git\cmd;C:\Program Files\nodejs;C:\Program Files (x86)\Skype\Phone;C:\cygwin64\bin;C:\Users\John\Documents\gradle-3.3\bin;C:\Program Files\Common Files\Intel\WirelessCommon;C:\Users\John\AppData\Local\Microsoft\WindowsApps;C:\Program Files\Git\usr\bin\vendor_perl;C:\Program Files\Git\usr\bin\core_perl
+9 verbose lifecycle react-node-boilerplate@1.0.0~start: PATH: C:\Program Files\nodejs\node_modules\npm\bin\node-gyp-bin;C:\Users\John\Documents\School\CS 4400\CS-4400-Database-WebApp\node_modules\.bin;C:\Users\John\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\local\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Users\John\bin;C:\Users\John\Documents\gradle-3.3\bin;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\ProgramData\Oracle\Java\javapath;C:\Program Files\Java\jdk1.8.0_60\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0;C:\Program Files\Microsoft SQL Server\120\Tools\Binn;C:\Program Files\Microsoft SQL Server\130\Tools\Binn;C:\Program Files (x86)\GtkSharp\2.12\bin;C:\Program Files (x86)\Windows Live\Shared;C:\Program Files\Git\cmd;C:\Program Files\nodejs;C:\Program Files (x86)\Skype\Phone;C:\Program Files\PuTTY;C:\cygwin64\bin;C:\Users\John\Documents\gradle-3.3\bin;C:\Program Files\Common Files\Intel\WirelessCommon;C:\Users\John\AppData\Local\Microsoft\WindowsApps;C:\Program Files\Git\usr\bin\vendor_perl;C:\Program Files\Git\usr\bin\core_perl
 10 verbose lifecycle react-node-boilerplate@1.0.0~start: CWD: C:\Users\John\Documents\School\CS 4400\CS-4400-Database-WebApp
 11 silly lifecycle react-node-boilerplate@1.0.0~start: Args: [ '/d /s /c',
 11 silly lifecycle   'npm run build:prod && cross-env NODE_ENV=production node ./build/server/index.js' ]
@@ -29,7 +28,7 @@
 15 verbose pkgid react-node-boilerplate@1.0.0
 16 verbose cwd C:\Users\John\Documents\School\CS 4400\CS-4400-Database-WebApp
 17 error Windows_NT 10.0.15063
-18 error argv "C:\\Program Files\\nodejs\\node.exe" "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js" "run" "start"
+18 error argv "C:\\Program Files\\nodejs\\node.exe" "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js" "start"
 19 error node v7.5.0
 20 error npm  v4.1.2
 21 error code ELIFECYCLE

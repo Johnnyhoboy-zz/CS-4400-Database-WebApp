@@ -90,11 +90,13 @@ app.post('/updateOwner', (req, res) => {
 
 app.post('/registerAccount', (req, res) => {
     var hashedPass = hash.MD5(req.body.Password.toString());
+
+    //User requests new breezecard, generate random one not in database
     if(req.body.Type == "new") {
         dbconn.registerUser(req.body.Username, hashedPass);
         dbconn.registerPassenger(req.body.Username, req.body.Email);
         var random = generateBreezecard();
-        var count;
+        var count = 0;
         do {
             dbconn.checkBreezecard(random, function(result) {
                 count = result[0].count;
@@ -109,9 +111,24 @@ app.post('/registerAccount', (req, res) => {
         dbconn.registerBreezecard(random, req.body.Username);
 
     } else {
+        //User wants to enter their own breezecard, check if conflict, then generate random
+        var random = req.body.BreezecardNum;
+        var count = 0;
+        do {
+            dbconn.checkBreezecard(req.body.BreezecardNum, function(result) {
+                    count = result[0].count;
+                    console.log(count);
+                    if (count == 1) {
+                        console.log('count is 1');
+                        dbconn.createConflict(req.body.Username, req.body.BreezecardNum);
+                        random = generateBreezecard();  
+                    }
+                });
+        } while (count == 1);
+
         dbconn.registerUser(req.body.Username, hashedPass);
         dbconn.registerPassenger(req.body.Username, req.body.Email);
-        dbconn.registerBreezecard(req.body.BreezecardNum, req.body.Username); 
+        dbconn.registerBreezecard(random, req.body.Username); 
     }
 
 });

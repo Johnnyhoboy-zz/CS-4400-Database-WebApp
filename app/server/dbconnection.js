@@ -119,6 +119,14 @@ var checkBreezecard = function(BreezecardNum, callback) {
     });
 }
 
+var createConflict = function(Username,BreezecardNum, callback) {
+    var sql = "INSERT INTO Conflict(Username, BreezecardNum) VALUES (?, ?);";
+    conn.query(sql, [Username, BreezecardNum], function(err, result, fields) {
+        if (err) throw err;
+        callback(result);
+    });
+}
+
 var test = function() { console.log('test successful'); };
 
 module.exports.test = test;
