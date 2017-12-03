@@ -116,12 +116,8 @@ app.post('/adminBreezecardValueChange', function (req, res) {
 app.post('/adminBreezecardTransfer', function (req, res) {
     dbconn.adminBreezecardCheckNumBreezecards(req.body.cardNumber, function (result) {
         var count = result[0].count;
-        console.log(result);
-        console.log(result[0]);
-        console.log(count);
         dbconn.transferBreezecard(req.body.cardNumber, req.body.newOwner, function (err) {
             if (err == '') {
-                console.log('transferred to new person');
                 if (count == 1) {
                     console.log('count is 1');
                     insertBreezecard(req.body.originalOwner);
@@ -150,5 +146,21 @@ function insertBreezecard(owner) {
         }
     });
 }
+
+app.post('/passengerFlowData', function (req, res) {
+    var start = req.body.timeStart;
+    var end = req.body.timeEnd;
+    console.log(start);
+    console.log(end);
+    if (start == '') {
+        start = '1000/01/01 00:00:00';
+    }
+    if (end == '') {
+        end = '9999/12/31 00:00:00';
+    }
+    dbconn.passengerFlowData(start, end, req.body.sort, req.body.desc, function (result) {
+        res.send(result);
+    });
+});
 
 exports.default = app;

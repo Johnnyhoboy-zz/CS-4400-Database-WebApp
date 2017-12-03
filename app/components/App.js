@@ -231,7 +231,7 @@ var BreezecardManagement = React.createClass({
 
         return { columns: oColumns, data: [], owner: '', suspended: false, cardNumber: '',
                  valueLow: '', valueHigh: '', setValue: '', transfer: '', sort: "BreezecardNum",
-                 selected: breezeCardManagementOptions[0], descending: '', selectedRow: null};
+                 selected: breezeCardManagementOptions[0], descending: '', descendingCheck: false, selectedRow: null};
     },
     selectRow : function(row) {
         this.setState( {selectedRow: row.original} );
@@ -293,7 +293,7 @@ var BreezecardManagement = React.createClass({
                 <text style={style5}>
                     Sort Descending?
                 </text>
-                <input type="checkbox" name="descending_checkbox" id="descending_checkbox" onClick={this.descendingChange} checked={this.state.descending} />
+                <input type="checkbox" name="descending_checkbox" id="descending_checkbox" onClick={this.descendingChange} checked={this.state.descendingCheck} />
             </div>
             <p></p>
             <ReactTable
@@ -341,9 +341,9 @@ var BreezecardManagement = React.createClass({
     },
     descendingChange: function(e) {
         if (e.target.checked) {
-            this.setState({descending : 'DESC'});
+            this.setState({descending : 'DESC', descendingCheck: true});
         } else {
-            this.setState({descending : ''});
+            this.setState({descending : '', descendingCheck: false});
         }
     },
     cardNumberChange: function(e) {
@@ -419,7 +419,7 @@ var BreezecardManagement = React.createClass({
     },
     resetFields: function() {
         this.setState({owner: '', suspended: false, cardNumber: '', valueLow: '', valueHigh: '',
-                       sort: "BreezecardNum", descending: false, selectedRow: null,
+                       sort: "BreezecardNum", descending: '', descendingCheck: false, selectedRow: null,
                        selected: breezeCardManagementOptions[0], setValue: '', transfer: ''});
     },
     nAdminFunctionalitya : function() { showAdminFunctionality(); }
@@ -461,20 +461,18 @@ var SuspendedCards = React.createClass({
     nAdminFunctionality : function() { showAdminFunctionality(); }
 });
 
-
+const passengerFlowOptions = ['Station Name', '# Passengers In', '# Passengers Out', 'Flow', 'Revenue'];
 var PassengerFlowReport = React.createClass({
     getInitialState : function() {
         var oColumns = [
-            { Header: 'Station Name', accessor: 'station' },
-            { Header: '# Passengers In', accessor: 'pass_in' },
-            { Header: '# Passengers Out', accessor: 'pass_out' },
+            { Header: 'Station Name', accessor: 'stationName' },
+            { Header: '# Passengers In', accessor: 'passIn' },
+            { Header: '# Passengers Out', accessor: 'passOut' },
             { Header: 'Flow', accessor: 'flow' },
             { Header: 'Revenue', accessor: 'revenue'}
         ];
-        var oData = [
-            { station: 'New Donk Station', pass_in: '100', pass_out: '50', revenue: '$4.20' }
-        ];
-        return { columns: oColumns, data: oData };
+        return { columns: oColumns, data: [], descending: '', descendingCheck: false, selected: passengerFlowOptions[0], timeStart: '',
+                 timeEnd: '', sort: 'stationName'};
     },
     render : function() {
         const style5 = {
@@ -485,6 +483,8 @@ var PassengerFlowReport = React.createClass({
             paddingRight: '40px'
         }
 
+        const defaultOption = this.state.selected;
+
         return (
         <div class="PassengerFlowReport">
             <p>Passenger Flow Report</p>
@@ -493,32 +493,87 @@ var PassengerFlowReport = React.createClass({
                     <text style={style40}>
                         Start Time
                     </text>
-                    <input type="text" name="start_time_textbox"/>
+                    <input type="datetime-local" name="start_time_textbox" onChange={this.startChange} value={this.state.timeStart}/>
                 </span>
                 <span style={style5}>
-                    <button>Update</button>
+                    <button onClick={this.updateData}>Update</button>
                 </span>
-                <button>Reset</button>
+                <button onClick={this.resetData}>Reset</button>
             </p>
             <p>
                 <span style={style5}>
                     <text style={style40}>
                         End Time
                     </text>
-                    <input type="text" name="end_time_textbook"/>
+                    <input type="datetime-local" name="end_time_textbook" onChange={this.endChange} value={this.state.timeEnd}/>
                 </span>
             </p>
-            <p>
-                <ReactTable
-                    data={this.state.data}
-                    columns={this.state.columns}
-                    defaultPageSize={10}
-                    sortable={false}
-                  />
-            </p>
+             <div style={{width: "250px"}}>
+                <text>Order By:</text>
+                <Dropdown options={passengerFlowOptions} onChange={this.sortChange} value={defaultOption} />
+                <text style={style5}>
+                    Sort Descending?
+                </text>
+                <input type="checkbox" name="descending_checkbox" id="descending_checkbox" onClick={this.descendingChange} checked={this.state.descendingCheck} />
+            </div>
+            <p></p>
+            <ReactTable
+                data={this.state.data}
+                columns={this.state.columns}
+                defaultPageSize={10}
+                sortable={false}/>
             <button onClick={this.nAdminFunctionality}>Back</button>
         </div>
         );
+    },
+    componentDidMount: function() {
+        this.updateData();
+    },
+    startChange: function(e) {
+        this.setState({timeStart: e.target.value});
+    },
+    endChange: function(e) {
+        this.setState({timeEnd: e.target.value});
+    },
+    descendingChange: function(e) {
+        if(e.target.checked) {
+            this.setState({descending: 'DESC', descendingCheck: true});
+        } else {
+            this.setState({descending: '', descendingCheck: false});
+        }
+    },
+    sortChange: function(e) {
+        if (e.value == passengerFlowOptions[0]) {
+            this.setState({sort: "stationName"});
+        } else if (e.value == passengerFlowOptions[1]) {
+            this.setState({sort: "passIn"});
+        } else if (e.value == passengerFlowOptions[2]) {
+            this.setState({sort: "passOut"});
+        } else if (e.value == passengerFlowOptions[3]) {
+            this.setState({sort: 'flow'});
+        } else {
+            this.setState({sort: 'revenue'});
+        }
+        this.setState({selected: e});
+
+    },
+    updateData : function() {
+        fetch(server + '/passengerFlowData',
+        {method: 'post',
+         headers: {'Content-Type': 'application/json'},
+         body: JSON.stringify({
+             "timeStart": this.state.timeStart,
+             "timeEnd": this.state.timeEnd,
+             "sort": this.state.sort,
+             "desc": this.state.descending
+         })
+        }).then(function(response) {
+            return response.json();
+        }).then(data => this.setState({data : data}));
+    },
+    resetData: function() {
+        this.setState({ columns: oColumns, data: [], descending: '', descendingCheck: false, selected: passengerFlowOptions[0], timeStart: '',
+                 timeEnd: '', sort: 'stationName'});
     },
     nAdminFunctionality : function() { showAdminFunctionality(); }
 });

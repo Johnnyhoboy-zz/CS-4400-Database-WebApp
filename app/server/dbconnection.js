@@ -151,8 +151,6 @@ var insertNewBreezecard = function(cardNumber, owner, callback) {
 };
 
 var transferBreezecard = function(cardNumber, owner, callback) {
-    console.log('transfer to:');
-    console.log(owner);
     var sql = "UPDATE Breezecard as b " +
               "SET b.BelongsTo = ?" +
               "WHERE b.BreezecardNum = ?;";
@@ -162,6 +160,43 @@ var transferBreezecard = function(cardNumber, owner, callback) {
         } else {
             callback('');
         }
+    });
+}
+
+var passengerFlowData = function(start, end, sort, desc, callback) {
+    var sql = "SELECT StationNames.Name as stationName, COALESCE(Entry.pIn, 0) " +
+              "as passIn, COALESCE(Exiting.pOut, 0) as passOut, COALESCE(Entry.pIn, 0) " +
+              "- COALESCE(Exiting.pOut, 0) as flow, Coalesce(Entry.fare, 0.00) as revenue " +
+              "FROM " +
+              "( " +
+                    "( " +
+                        "(SELECT s.Name, s.StopID " +
+                            "FROM Station as s " +
+                            "WHERE s.StopID IN (SELECT s.StopID " +
+                                               "FROM Trip as t " +
+                                               "WHERE (s.StopID = t.EndsAt OR s.StopID = t.StartsAt) " +
+                                               "AND (t.StartTIme BETWEEN ? AND ?))) as StationNames " +
+                        "LEFT JOIN " +
+                            "(SELECT COUNT(*) as pIn, s.StopID, SUM(t.Tripfare) as fare " +
+                            "FROM Station as s, Trip as t " +
+                            "WHERE s.StopID = t.StartsAt " +
+                            "AND (t.StartTIme BETWEEN ? AND ?) " +
+                            "GROUP BY s.StopID) as Entry " +
+                        "ON Entry.StopID = StationNames.StopID " +
+                    ") " +
+                    "LEFT JOIN " +
+                        "(SELECT COUNT(*) as pOut, s.StopID " +
+                        "FROM Station as s, Trip as t " +
+                        "WHERE s.StopID = t.EndsAt " +
+                        "AND (t.StartTIme BETWEEN ? AND ?) " +
+                        "GROUP BY s.StopID) as Exiting " +
+                    "ON Exiting.StopID = StationNames.StopID " +
+                ") " +
+                "ORDER BY " + sort + ' ' + desc + ';';
+
+    conn.query(sql, [start, end, start, end, start, end], function(err, result, fields) {
+        if(err) throw err;
+        callback(result);
     });
 }
 
@@ -181,3 +216,4 @@ module.exports.adminBreezecardValueChange = adminBreezecardValueChange;
 module.exports.adminBreezecardCheckNumBreezecards = adminBreezecardCheckNumBreezecards;
 module.exports.insertNewBreezecard = insertNewBreezecard;
 module.exports.transferBreezecard = transferBreezecard;
+module.exports.passengerFlowData = passengerFlowData;
