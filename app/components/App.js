@@ -9,18 +9,21 @@ const server = "http://localhost:8080";
 //
 
 var LogIn = React.createClass({
+	getInitialState : function() {
+		return { userName: '', password: ''};
+	},
     render : function() { return (
     	<div className="LogIn">
     		<center>
 	    	<h1>Log In</h1>
 	    	<form>
 			  Username:<br />
-			  <input type="text" name="user" /><br />
+			  <input type="text" onChange={this.userChange}/><br />
 			  Password:<br />
-			  <input type="text" name="pass" /><br />
+			  <input type="text" onChange={this.passChange}/><br />
 	    	</form>
 	        <br />
-	    	<button>Login</button>
+	    	<button onClick={this.login}>Login</button>
 	    	<button onClick={this.nRegistration}>Register</button>
 	    	<button onClick={this.nPassengerFunctionality}>Go To Passenger Functionality</button>
 	    	<button onClick={this.nAdminFunctionality}>Go To Admin Functionality</button>
@@ -28,6 +31,35 @@ var LogIn = React.createClass({
     	</div>
     	); 
 	},
+	
+	userChange : function(e) {
+		this.setState({ userName: e.target.value} );
+	},
+	passChange : function(e) {
+		this.setState({ password: e.target.value} );
+	},
+	
+	
+	login: function() {
+
+		if (this.state.userName == '' || this.state.password == '') {
+			alert('Please fill out all non-optional fields');
+			return;
+		} 
+		fetch(server + '/registerAccount', {
+			method: 'post',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify({
+				 "Username": this.state.userName,
+				 "Email": this.state.email,
+				 "Password": this.state.password,
+				 "BreezecardNum": this.state.breezeCardNum,
+				 "Type" : this.state.type
+			})
+		}).then(function(res){ return res.json(); }).then(function(data){ alert( data.message ) });
+	
+	},
+	
     nRegistration : function() { showRegistration(); },
     nPassengerFunctionality : function() { showPassengerFunctionality(); },
     nAdminFunctionality : function() { showAdminFunctionality(); }

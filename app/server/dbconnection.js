@@ -112,18 +112,17 @@ var registerBreezecard = function(BreezecardNum, Username, callback) {
 }
 
 var checkBreezecard = function(BreezecardNum, callback) {
-    var sql = "SELECT COUNT(*) FROM Breezecard as b WHERE b.BreezecardNum = ?";
+    var sql = "SELECT COUNT(*) as count FROM Breezecard as b WHERE b.BreezecardNum = ?";
     conn.query(sql, [BreezecardNum], function(err, result, fields) {
         if (err) throw err;
         callback(result);
     });
 }
 
-var createConflict = function(Username,BreezecardNum, callback) {
+var createConflict = function(Username,BreezecardNum) {
     var sql = "INSERT INTO Conflict(Username, BreezecardNum) VALUES (?, ?);";
     conn.query(sql, [Username, BreezecardNum], function(err, result, fields) {
         if (err) throw err;
-        callback(result);
     });
 }
 
@@ -143,3 +142,4 @@ module.exports.registerUser = registerUser;
 module.exports.registerPassenger = registerPassenger;
 module.exports.registerBreezecard = registerBreezecard;
 module.exports.checkBreezecard = checkBreezecard;
+module.exports.createConflict = createConflict;

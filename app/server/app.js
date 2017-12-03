@@ -89,6 +89,8 @@ app.post('/updateOwner', (req, res) => {
 });
 
 app.post('/registerAccount', (req, res) => {
+
+    //hashed MD5 password
     var hashedPass = hash.MD5(req.body.Password.toString());
 
     //User requests new breezecard, generate random one not in database
@@ -100,9 +102,8 @@ app.post('/registerAccount', (req, res) => {
         do {
             dbconn.checkBreezecard(random, function(result) {
                 count = result[0].count;
-                console.log(count);
                 if (count == 1) {
-                    console.log('count is 1');
+                    console.log('count is 1, random num exists already, generating another');
                     random = generateBreezecard();  
                 }
             });
@@ -111,24 +112,23 @@ app.post('/registerAccount', (req, res) => {
         dbconn.registerBreezecard(random, req.body.Username);
 
     } else {
-        //User wants to enter their own breezecard, check if conflict, then generate random
-        var random = req.body.BreezecardNum;
-        var count = 0;
-        do {
-            dbconn.checkBreezecard(req.body.BreezecardNum, function(result) {
-                    count = result[0].count;
-                    console.log(count);
-                    if (count == 1) {
-                        console.log('count is 1');
-                        dbconn.createConflict(req.body.Username, req.body.BreezecardNum);
-                        random = generateBreezecard();  
-                    }
-                });
-        } while (count == 1);
 
+        //User wants to enter their own breezecard, check if conflict then generate random breezecard
         dbconn.registerUser(req.body.Username, hashedPass);
         dbconn.registerPassenger(req.body.Username, req.body.Email);
-        dbconn.registerBreezecard(random, req.body.Username); 
+        dbconn.checkBreezecard(random, function(result) {
+            var count = result[0].count;
+            if (count == 1) {
+                console.log('count is 1, user entered a breezenum already in database, generating random num');
+                var random = generateBreezecard();
+                dbconn.createConflict(req.body.Username, req.body.BreezecardNum);
+                dbconn.registerBreezecard(random, req.body.Username); 
+            } else {
+                //use user's unique breezecard
+                dbconn.registerBreezecard(req.body.BreezecardNum, req.body.Username);
+            }
+        });
+         
     }
 
 });
