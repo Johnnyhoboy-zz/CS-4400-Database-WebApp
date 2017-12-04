@@ -63,7 +63,7 @@ var LogIn = React.createClass({
 	},
 
     nRegistration : function() { showRegistration(); },
-    nPassengerFunctionality : function() { showPassengerFunctionality(); },
+    nPassengerFunctionality : function() { showPassengerFunctionality(this.state.username); },
     nAdminFunctionality : function() { showAdminFunctionality(); }
 });
 
@@ -161,7 +161,7 @@ var Registration = React.createClass({
             });
 	},
 
-	nPassengerFunctionality : function() { showPassengerFunctionality(); },
+	nPassengerFunctionality : function() { showPassengerFunctionality(this.state.username); },
 	nLogin : function() { showLogIn(); }
 
 });
@@ -185,7 +185,7 @@ var PassengerFunctionality = React.createClass({
 		.then(data => this.setState({ endData: data })
 		);
 
-		fetch(server + "/passengerCardData")
+		fetch(server + "/passengerCards")
 		.then(response => response.json())
 		.then(data => this.setState({ cardData: data })
 		);
@@ -245,6 +245,7 @@ var PassengerFunctionality = React.createClass({
 	},
 	selectedCard : function(e) {
 		this.setState({ selectedCard: e.value}, function() {
+		chosenCard = this.state.selectedCard;
 		fetch(server + '/getValue',
         {method: 'post',
          headers: {'Content-Type': 'application/json'},
@@ -320,15 +321,18 @@ var PassengerFunctionality = React.createClass({
 			body: JSON.stringify({
 				 "End": this.state.currentE.value,
 				 "BreezecardNum": this.state.selectedCard,
+				 "sort": this.state.sort,
+             "desc": this.state.descending
 			})
 		});
 		this.setState({prompt: 'Start Trip', disable: 'false'} );
 	},
-	nTripHistory : function() { showTripHistory(); },
-	nManageCards : function() { showManageCards(); },
+	nTripHistory : function() { showTripHistory(this.props.username); },
+	nManageCards : function() { showManageCards(this.props.username); },
 	nLogin : function() { showLogIn(); }
 });
 
+const manageOptions = ['Breezecard', 'Value'];
 var ManageCards = React.createClass({
     getInitialState : function() {
     	var oColumns = [
@@ -347,21 +351,27 @@ var ManageCards = React.createClass({
 			{ Header: 'Value', accessor: 'Value' },
 			
 		];
-        return { columns: oColumns, data: [], selectedRow: null, card: '', value: '', credit: '' };
+        return { columns: oColumns, data: [], selectedRow: null, card: '', value: '', credit: '', selected: manageOptions[0], descending: '', descendingCheck: 'false', sort: 'BreezecardNum' };
     },
     selectRow : function(row) {
 		this.setState( {selectedRow: row.original} );
 	},
-	componentDidMount : function() {
-		fetch(server + "/passengerCardData")
-		.then(response => response.json())
-		.then(data => this.setState({ data: data })
-		);
-	},
-    render : function() { return (
+	
+    render : function() { 
+    	const defaultOption = this.state.selected;
+    	return (
     	<div class="ManageCards">
 	    	<p>Manage Cards</p>
             <p>Breeze Cards</p>
+            <div>
+            <text>Order By:</text>
+                <Dropdown options={manageOptions} onChange={this.sortChange} value={defaultOption} />
+                <text>
+                    Sort Descending?
+                </text>
+                <input type="checkbox" name="descending_checkbox" id="descending_checkbox" onClick={this.descendingChange} checked={this.state.descendingCheck} />
+            </div>
+            <button onClick={this.update}>Update</button>
             <ReactTable
 				    data={this.state.data}
 				    columns={this.state.columns}
@@ -389,7 +399,9 @@ var ManageCards = React.createClass({
 	    	</div>
     	);
 	},
-
+	componentDidMount : function() {
+		this.update();
+	},
 	removeCard : function () {
 		if(this.state.data.length == 1) {
 			alert('Each passenger must have at least one Breezecard');
@@ -402,12 +414,45 @@ var ManageCards = React.createClass({
 				 "BreezecardNum": this.state.selectedRow.BreezecardNum
 			})
 		});
-		fetch(server + "/passengerCardData")
+		fetch(server + "/passengerCards", {method: 'post',
+		headers: {'Content-Type': 'application/json'},
+		body: JSON.stringify({
+			"username": this.props.username
+		})})
 		.then(response => response.json())
 		.then(data => this.setState({ data: data })
 		);
 		}
 	},
+	update : function() {
+        fetch(server + '/passengerCardData',
+        {method: 'post',
+         headers: {'Content-Type': 'application/json'},
+         body: JSON.stringify({
+			 "username": this.props.username,
+             "sort": this.state.sort,
+             "desc": this.state.descending
+         })
+        }).then(function(response) {
+            return response.json();
+        }).then(data => this.setState({data : data}));
+    },
+	sortChange: function(e) {
+        if (e.value == manageOptions[0]) {
+            this.setState({sort: "BreezecardNum"});
+        } else {
+            this.setState({sort: "Value"});
+        }
+        this.setState({selected: e});
+
+    },
+	descendingChange: function(e) {
+        if(e.target.checked) {
+            this.setState({descending: 'DESC', descendingCheck: true});
+        } else {
+            this.setState({descending: '', descendingCheck: false});
+        }
+    },
 
 	newCard : function(e) {
 		this.setState({ card: e.target.value} );
@@ -438,6 +483,7 @@ var ManageCards = React.createClass({
 			method: 'post',
 			headers: {'Content-Type': 'application/json'},
 			body: JSON.stringify({
+				"username": this.props.username,
 				 "BreezecardNum": this.state.card
 			})
 		});
@@ -466,7 +512,7 @@ var TripHistory = React.createClass({
             { Header: 'Fare Paid', accessor: 'Tripfare' },
             { Header: 'Card #', accessor: 'BreezecardNum' },
 		];
-		return { columns: oColumns, data: [], start: '', end: ''};
+		return { columns: oColumns, data: [], start: '', end: '', descending: '', descendingCheck: false, sort: 'StartTime'};
 	},
 	
 	
@@ -482,6 +528,12 @@ var TripHistory = React.createClass({
 	    	<button onClick={this.updateHist}>Update</button>
 	    	<button onClick={this.reset}>Reset</button>
 	    	<br/>
+	    	<div style={{width: "250px"}}>
+	    	<text>
+                    Sort Descending?
+                </text>
+                <input type="checkbox" name="descending_checkbox" id="descending_checkbox" onClick={this.descendingChange} checked={this.state.descendingCheck} />
+            </div>
 	    	<ReactTable
 				data={this.state.data}
 				columns={this.state.columns}
@@ -503,14 +555,23 @@ var TripHistory = React.createClass({
 	end: function(e) {
 		this.setState({ end: e.target.value} );
 	},
-
+	descendingChange: function(e) {
+        if(e.target.checked) {
+            this.setState({descending: 'DESC', descendingCheck: true});
+        } else {
+            this.setState({descending: '', descendingCheck: false});
+        }
+    },
 	updateHist: function() {
 		fetch(server + '/updateHistory',
         {method: 'post',
          headers: {'Content-Type': 'application/json'},
          body: JSON.stringify({
+			 "Username": this.props.username,
              "Start": this.state.start,
-             "End": this.state.end, 
+             "End": this.state.end,
+             "sort": this.state.sort,
+             "desc": this.state.descending,
          })
         }).then(response => response.json())
         .then(data => this.setState({data : data}));
@@ -521,6 +582,7 @@ var TripHistory = React.createClass({
     },
 	nPassengerFunctionality : function() { showPassengerFunctionality(); }
 });
+
 
 
 var AdminFunctionality = React.createClass({
@@ -1269,16 +1331,19 @@ function showRegistration() {
     ReactDOM.render(<Registration />, document.getElementById('root'));
 }
 
-function showPassengerFunctionality() {
-    ReactDOM.render(<PassengerFunctionality />, document.getElementById('root'));
+function showPassengerFunctionality(username) {
+    ReactDOM.render(<PassengerFunctionality 
+						username={username}/>, document.getElementById('root'));
 }
 
-function showManageCards() {
-    ReactDOM.render(<ManageCards />, document.getElementById('root'));
+function showManageCards(username) {
+    ReactDOM.render(<ManageCards 
+						username={username}/>, document.getElementById('root'));
 }
 
-function showTripHistory() {
-    ReactDOM.render(<TripHistory />, document.getElementById('root'));
+function showTripHistory(username) {
+    ReactDOM.render(<TripHistory 
+						username={username}/>, document.getElementById('root'));
 }
 
 function showViewStation(stationId) {

@@ -156,6 +156,17 @@ var updateOwner = function updateOwner(Username, OldName, BreezeCardNum, callbac
     });
 };
 
+var checkBreezecardOwnership = function checkBreezecardOwnership(Username, callback) {
+    var sql = "SELECT COUNT(*) as count from Breezecard as b WHERE b.BelongsTo = ?";
+    conn.query(sql, [Username], function (err, result, fields) {
+        if (err) {
+            callback(err);
+        } else {
+            callback(result);
+        }
+    });
+};
+
 var loginCheck = function loginCheck(Username, Password, callback) {
     //Check if User and Pass match in database
     var sql = "SELECT COUNT(*) as count FROM User as a WHERE a.Username = ? AND a.Password = ?;";
@@ -269,9 +280,17 @@ var endStationListData = function endStationListData(start, callback) {
     });
 };
 
-var passengerCardData = function passengerCardData(callback) {
-    var sql = "SELECT BreezecardNum, Value FROM Breezecard WHERE BelongsTo='busrider73'";
-    conn.query(sql, function (err, result, fields) {
+var passengerCards = function passengerCards(username, callback) {
+    var sql = "SELECT BreezecardNum, Value FROM Breezecard WHERE BelongsTo=?";
+    conn.query(sql, [username], function (err, result, fields) {
+        if (err) throw err;
+        callback(result);
+    });
+};
+
+var passengerCardData = function passengerCardData(username, sort, desc, callback) {
+    var sql = "SELECT BreezecardNum, Value FROM Breezecard WHERE BelongsTo=? ORDER BY " + sort + ' ' + desc + ';';
+    conn.query(sql, [username], function (err, result, fields) {
         if (err) throw err;
         callback(result);
     });
@@ -292,23 +311,23 @@ var addValue = function addValue(value, card) {
 };
 
 var tripHistoryData = function tripHistoryData(callback) {
-    var sql = "SELECT StartTime, StartsAt, EndsAt, Tripfare, BreezecardNum FROM Trip";
+    var sql = "SELECT StartTime, StartsAt, EndsAt, Tripfare, BreezecardNum FROM Trip WHERE ";
     conn.query(sql, function (err, result, fields) {
         if (err) throw err;
         callback(result);
     });
 };
 
-var addCard = function addCard(breezecard) {
-    var sql = "INSERT INTO Breezecard(BreezecardNum, Value) VALUES (?,0)";
-    conn.query(sql, [breezecard], function (err, result, fields) {
+var addCard = function addCard(breezecard, username) {
+    var sql = "INSERT INTO Breezecard(BreezecardNum, Value, BelongsTo) VALUES (?,0,?)";
+    conn.query(sql, [breezecard, username], function (err, result, fields) {
         if (err) throw err;
     });
 };
 
-var updateHistory = function updateHistory(start, end, callback) {
-    var sql = "SELECT StartTime, StartsAt, EndsAt, Tripfare, BreezecardNum FROM Trip" + " WHERE (StartTime BETWEEN ? AND ?)";
-    conn.query(sql, [start, end], function (err, result, fields) {
+var updateHistory = function updateHistory(username, start, end, sort, desc, callback) {
+    var sql = "SELECT StartTime, StartsAt, EndsAt, Tripfare, BreezecardNum FROM Trip WHERE Trip.BreezecardNum IN (SELECT BreezecardNum FROM Breezecard AS b WHERE b.belongsTo(?))" + " WHERE (StartTime BETWEEN ? AND ?) ORDER BY " + sort + ' ' + desc + ';';
+    conn.query(sql, [username, start, end], function (err, result, fields) {
         if (err) throw err;
         callback(result);
     });
@@ -355,3 +374,5 @@ module.exports.updateHistory = updateHistory;
 module.exports.stationListData = stationListData;
 module.exports.endStationListData = endStationListData;
 module.exports.removeCard = removeCard;
+module.exports.checkBreezecardOwnership = checkBreezecardOwnership;
+module.exports.passengerCards = passengerCards;

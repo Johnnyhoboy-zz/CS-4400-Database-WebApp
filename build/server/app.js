@@ -304,8 +304,14 @@ app.post('/endStationListData', function (req, res) {
     });
 });
 
-app.get('/passengerCardData', function (req, res) {
-    dbconn.passengerCardData(function (result) {
+app.post('/passengerCards', function (req, res) {
+    dbconn.passengerCards(req.body.username, function (result) {
+
+        res.send(result);
+    });
+});
+app.post('/passengerCardData', function (req, res) {
+    dbconn.passengerCardData(req.body.username, req.body.sort, req.body.desc, function (result) {
 
         res.send(result);
     });
@@ -330,7 +336,7 @@ app.get('/tripHistoryData', function (req, res) {
 });
 
 app.post('/addCard', function (req, res) {
-    dbconn.addCard(req.body.BreezecardNum);
+    dbconn.addCard(req.body.BreezecardNum, req.body.username);
 });
 
 app.post('/addValue', function (req, res) {
@@ -346,8 +352,8 @@ app.post('/updateHistory', function (req, res) {
     if (end == '') {
         end = '9999/12/31 00:00:00';
     }
-    dbconn.updateHistory(start, end, function (result) {
-        //console.log(result);
+    dbconn.updateHistory(start, end, req.body.sort, req.body.desc, function (result) {
+
         res.send(result);
     });
 });

@@ -303,9 +303,15 @@ app.post('/endStationListData', (req, res) => {
     });
 });
 
-app.get('/passengerCardData', (req, res) => {
-    dbconn.passengerCardData( function(result) {
-        
+app.post('/passengerCards', (req, res) => {
+    dbconn.passengerCards(req.body.username, function(result) {
+
+        res.send( result);
+    });
+});
+app.post('/passengerCardData', (req, res) => {
+    dbconn.passengerCardData(req.body.username, req.body.sort, req.body.desc, function(result) {
+
         res.send(result);
     });
 });
@@ -329,7 +335,7 @@ app.get('/tripHistoryData', (req, res) => {
 });
 
 app.post('/addCard', (req, res) => {
-    dbconn.addCard(req.body.BreezecardNum);
+    dbconn.addCard(req.body.BreezecardNum, req.body.username);
 });
 
 app.post('/addValue', (req, res) => {
@@ -337,19 +343,19 @@ app.post('/addValue', (req, res) => {
 });
 
 app.post('/updateHistory', (req, res) => {
-var start = req.body.Start;
-    var end = req.body.End;
-    if (start == '') {
-        start = '1000/01/01 00:00:00';
-    }
-    if(end == '') {
-        end = '9999/12/31 00:00:00';
-    }
-     dbconn.updateHistory(start, end, function(result) {
-        //console.log(result);
-        res.send(result);
-     });
-});
+    var start = req.body.Start;
+        var end = req.body.End;
+        if (start == '') {
+            start = '1000/01/01 00:00:00';
+        }
+        if(end == '') {
+            end = '9999/12/31 00:00:00';
+        }
+         dbconn.updateHistory(start, end, req.body.sort, req.body.desc, function(result) {
+            
+            res.send(result);
+         });
+    });
 
 app.get('/inProgress', (req, res) => {
     dbconn.inProgress(function(result) {
