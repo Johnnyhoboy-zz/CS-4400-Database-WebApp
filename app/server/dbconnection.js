@@ -211,8 +211,8 @@ var endStationListData = function(start, callback) {
     });
 };
 
-var passengerCardData = function(callback) {
-    var sql = "SELECT BreezecardNum, Value FROM Breezecard WHERE BelongsTo='busrider73'";
+var passengerCardData = function(sort, desc, callback) {
+    var sql = "SELECT BreezecardNum, Value FROM Breezecard WHERE BelongsTo='busrider73' ORDER BY " + sort + ' ' + desc + ';';
     conn.query(sql, function(err, result, fields) {
         if (err) throw err;
         callback(result);
@@ -233,8 +233,8 @@ var addValue = function(value, card) {
     });
 };
 
-var tripHistoryData = function(callback) {
-    var sql = "SELECT StartTime, StartsAt, EndsAt, Tripfare, BreezecardNum FROM Trip";
+var tripHistoryData = function(sort, desc,callback) {
+    var sql = "SELECT StartTime, StartsAt, EndsAt, Tripfare, BreezecardNum FROM Trip ORDER BY " + sort + ' ' + desc + ';';
     conn.query(sql, function(err, result, fields) {
         if (err) throw err;
         callback(result);
@@ -248,9 +248,9 @@ var addCard = function(breezecard) {
     });
 };
 
-var updateHistory = function(start, end, callback) {
+var updateHistory = function(start, end, sort, desc, callback) {
     var sql = "SELECT StartTime, StartsAt, EndsAt, Tripfare, BreezecardNum FROM Trip" + 
-    " WHERE (StartTime BETWEEN ? AND ?)";
+    " WHERE (StartTime BETWEEN ? AND ?) ORDER BY " + sort + ' ' + desc + ';';
     conn.query(sql, [start, end], function(err, result, fields) {
         if (err) throw err;
         callback(result);
