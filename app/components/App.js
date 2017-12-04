@@ -20,13 +20,13 @@ var LogIn = React.createClass({
 			  Username:<br />
 			  <input type="text" onChange={this.userChange}/><br />
 			  Password:<br />
-			  <input type="text" onChange={this.passChange}/><br />
+			  <input type="password" onChange={this.passChange}/><br />
 	    	</form>
 	        <br />
-	    	<button onClick={this.login}>Login</button>
-	    	<button onClick={this.nRegistration}>Register</button>
-	    	<button onClick={this.nPassengerFunctionality}>Go To Passenger Functionality</button>
-	    	<button onClick={this.nAdminFunctionality}>Go To Admin Functionality</button>
+	    	<button onClick={this.login}>Login</button> <br /> <br/>
+	    	<button onClick={this.nRegistration}>Register</button> <br /> <br />
+	    	<button onClick={this.nPassengerFunctionality}>Go To Passenger Functionality</button> <br /> <br />
+	    	<button onClick={this.nAdminFunctionality}>Go To Admin Functionality</button> <br />
 	    	</center>
     	</div>
     	); 
@@ -53,10 +53,19 @@ var LogIn = React.createClass({
 				 "Username": this.state.userName,
 				 "Password": this.state.password,
 			})
-		}).then(function(res){ return res.json(); }).then(function(data){ alert( data.message ) });
-	
+		}).then(function(response) {
+                return response.json();
+            }).then(data => {
+ 				if (data.message == 'loginError') {
+					alert('The login you inputed was incorrect!');
+				} else if (data.message == 'admin') {
+					showAdminFunctionality();
+				} else if (data.message == 'passenger') {
+					showPassengerFunctionality();
+				}
+            });
 	},
-	
+
     nRegistration : function() { showRegistration(); },
     nPassengerFunctionality : function() { showPassengerFunctionality(); },
     nAdminFunctionality : function() { showAdminFunctionality(); }
@@ -77,9 +86,9 @@ var Registration = React.createClass({
 			  <label>Email: </label>
 			  <input type="text" onChange={this.emailChange}/><br />
 			  <label>Password: </label>
-			  <input type="text" onChange={this.passChange}/><br />
+			  <input type="password" onChange={this.passChange}/><br />
 			  <label>Confirm Password: </label>
-			  <input type="text" onChange={this.confirmPassChange} /><br />
+			  <input type="password" onChange={this.confirmPassChange} /><br />
 			  
 			  <h3>Breeze Card</h3>
 			  <input type="radio" name="UseBreezeCard" value="old" checked={this.state.type!='new'} onChange={this.typeChange}/><label>Use my existing Breeze Card</label><br />
@@ -144,7 +153,24 @@ var Registration = React.createClass({
 				 "BreezecardNum": this.state.breezeCardNum,
 				 "Type" : this.state.type
 			})
-		}).then(function(res){ return res.json(); }).then(function(data){ alert( data.message ) }).then(this.nPassengerFunctionality);
+		}).then(function(response) {
+                return response.json();
+            }).then(data => {
+ 				if (data.message == 'userError') {
+					alert('The username you inputed already exists!');
+				} else if (data.message == 'emailError') {
+					alert('The email you inputed already exists!');
+				} else if (data.message == 'breezecardError') {
+					alert('The breezecard you entered already exists!');
+				} else if (data.message == 'conflictError') {
+					alert('The Conflict already exists!');
+				} else if (data.message == 'sameBreezecard') {
+					alert('You entered in an existing Breezecard, suspending it, and generating new Breezecard');
+					showPassengerFunctionality();
+				} else {
+					showPassengerFunctionality();
+				}
+            });
 	
 	
 	},
@@ -274,13 +300,15 @@ var TripHistory = React.createClass({
 
 var AdminFunctionality = React.createClass({
     render : function() { return (
-    	<div class="AdminFunctionality">
+    	<div class="AdminFunctionality"> 
+		<center>
 	    	<p>Admin Functionality</p>
-	    	<button onClick={this.nBreezecardManagement}>Go To Breezecard Management</button>
-	    	<button onClick={this.nStationManagement}>Go To Station Management</button>
-	    	<button onClick={this.nPassengerFlowReport}>Go To PassengerFlowReport</button>
-	    	<button onClick={this.nSuspendedCards}>Go To Suspended Cards</button>
-	    	<button onClick={this.nLogin}>Back</button>
+	    	<button onClick={this.nBreezecardManagement}>Go To Breezecard Management</button> <br /> <br />
+	    	<button onClick={this.nStationManagement}>Go To Station Management</button> <br /> <br />
+	    	<button onClick={this.nPassengerFlowReport}>Go To PassengerFlowReport</button> <br /> <br />
+	    	<button onClick={this.nSuspendedCards}>Go To Suspended Cards</button> <br /> <br />
+	    	<button onClick={this.nLogin}>Back</button> <br />
+		</center>
     	</div>
     	);
 	},

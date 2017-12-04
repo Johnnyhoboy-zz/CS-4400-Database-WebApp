@@ -91,23 +91,29 @@ app.post('/updateOwner', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-    var count = 0;
-    var count2 = 0;
+    var loginExists = 0;
+    var IsAdmin = 0;
     var hashedPass = hash.MD5(req.body.Password.toString());
 
     dbconn.loginCheck(req.body.Username, hashedPass, function (result) {
-        count = result[0].count;
-        count2 = result[0].count2;
+        loginExists = result[0].count;
         //Login exists
-        console.log(count);
-        //User is Admin
-        console.log(count2);
+        dbconn.adminCheck(req.body.Username, function (result) {
+            IsAdmin = result[0].count2;
+            //User is admin
+            console.log(IsAdmin);
+            if (loginExists == 0) {
+                res.send({'message' : 'loginError'});
+            } else if(loginExists == 1 && IsAdmin == 1) {
+                res.send({'message' : 'admin'});
+            } else if (loginExists == 1 && IsAdmin == 0) {
+                res.send({'message' : 'passenger'});
+            }
+        });
+
+
     });
 
-
-    if(count == 1 && count2 == 1) {
-
-    }
 });
 
 app.post('/registerAccount', (req, res) => {
@@ -117,47 +123,78 @@ app.post('/registerAccount', (req, res) => {
 
     //User requests new breezecard, generate random one not in database
     if(req.body.Type == "new") {
-        dbconn.registerUser(req.body.Username, hashedPass, function(result) {
-        });
-        dbconn.registerPassenger(req.body.Username, req.body.Email, function(result) {
-        });
-        var random = generateBreezecard();
-        var count = 0;
-        do {
-            dbconn.checkBreezecard(random, function(result) {
-                count = result[0].count;
-                if (count == 1) {
-                    console.log('count is 1, random num exists already, generating another');
-                    random = generateBreezecard();  
+        dbconn.registerUser(req.body.Username, hashedPass, function(err) {
+            if (err) {
+                res.send({'message' : 'userError'});
+            } 
+            dbconn.registerPassenger(req.body.Username, req.body.Email, function(err) {
+                if(err) {
+                    res.send({'message' : 'emailError'});
                 }
-            });
-        } while (count == 1);
 
-        dbconn.registerBreezecard(random, req.body.Username, function(result) {
+                var random = generateBreezecard();
+                var count = 0;
+                do {
+                    dbconn.checkBreezecard(random, function(result) {
+                        count = result[0].count;
+                        if (count == 1) {
+                            console.log('count is 1, random num exists already, generating another');
+                            random = generateBreezecard();  
+                        }
+                    });
+                } while (count == 1);
+
+                dbconn.registerBreezecard(random, req.body.Username, function(err) {
+                    if(err) {
+                        res.send({'message' : 'breezecardError'});
+                    }
+                });
+            });
+
         });
+
+
 
     } else {
         var random = 0;
         //User wants to enter their own breezecard, check if conflict then generate random breezecard
-        dbconn.registerUser(req.body.Username, hashedPass, function (result) {
-        });
-        dbconn.registerPassenger(req.body.Username, req.body.Email, function(result) {
-        });
-        dbconn.checkBreezecard(req.body.BreezecardNum, function(result) {
-            count = result[0].count;
-            if (count == 1) {
-                console.log('count is 1, user entered a breezenum already in database, generating random num');
-                var random = generateBreezecard();
-                dbconn.createConflict(req.body.Username, req.body.BreezecardNum, function (result) {
+        dbconn.registerUser(req.body.Username, hashedPass, function (err) {
+            if (err) {
+                res.send({'message' : 'userError'});
+            } 
+            dbconn.registerPassenger(req.body.Username, req.body.Email, function(err) {
+                if(err) {
+                    res.send({'message' : 'emailError'});
+                }
+                dbconn.checkBreezecard(req.body.BreezecardNum, function(result) {
+                    var count = result[0].count;
+                    if (count == 1) {
+                        console.log('count is 1, user entered a breezenum already in database, generating random num');
+                        var random = generateBreezecard();
+                        dbconn.createConflict(req.body.Username, req.body.BreezecardNum, function (err) {
+                            if (err) {
+                                res.send({'message' : 'conflictError'});
+                            } else {
+                                res.send({'message' : 'sameBreezecard'})
+                            }
+                        });
+                        dbconn.registerBreezecard(random, req.body.Username, function(err) {
+                            if(err) {
+                                 res.send({'message' : 'breezecardError'});
+                            }
+                        }); 
+                    } else {
+                        //use user's unique breezecard
+                        dbconn.registerBreezecard(req.body.BreezecardNum, req.body.Username, function(result) {
+                            if(err) {
+                                 res.send({'message' : 'breezecardError'});
+                            }
+                        });
+                    }
                 });
-                dbconn.registerBreezecard(random, req.body.Username, function(result) {
-                }); 
-            } else {
-                //use user's unique breezecard
-                dbconn.registerBreezecard(req.body.BreezecardNum, req.body.Username, function(result) {
-                });
-            }
+            });
         });
+
          
     }
 

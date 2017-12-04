@@ -87,7 +87,7 @@ var updateOwner = function(Username, BreezeCardNum, callback) {
     sql = "DELETE FROM Conflict WHERE Username = ?";
     conn.query(sql, [Username], function(err, result, fields) {
         if (err) throw err;
-        callback(result[0]);
+        callback(result);
     });
 };
 
@@ -96,38 +96,37 @@ var loginCheck = function(Username, Password, callback) {
     var sql = "SELECT COUNT(*) as count FROM User as a WHERE a.Username = ? AND a.Password = ?;"
     conn.query(sql, [Username, Password], function(err, result, fields) {
         if (err) throw err;
-        callback(result[0]);
+        callback(result);
     });
+}
 
+var adminCheck = function(Username, callback) {
     //Check if User is an admin
-    sql = "SELECT COUNT(*) as count2 FROM User as a WHERE a.Username = ? AND a.IsAdmin = ?";
-    conn.query(sql, [Username, 1], function(err, result, fields) {
+    var sql = "SELECT COUNT(*) as count2 FROM User as a WHERE a.Username = ? AND a.IsAdmin = 1";
+    conn.query(sql, [Username], function(err, result, fields) {
         if (err) throw err;
-        callback(result[0]);
+        callback(result);
     });
 }
 
 var registerUser = function(Username, Password, callback) {
-    var sql = "INSERT INTO User(Username, Password, IsAdmin) VALUES (?, ?, ?);";
-    conn.query(sql, [Username, Password, 0], function(err, result, fields) {
-        if (err) throw err;
-        callback(result[0]);
+    var sql = "INSERT INTO User(Username, Password, IsAdmin) VALUES (?, ?, 0);";
+    conn.query(sql, [Username, Password], function(err, result, fields) {
+        callback(err);
     });
 }
 
 var registerPassenger = function(Username, Email, callback) {
     var sql = "INSERT INTO Passenger(Username, Email) VALUES (?, ?);";
     conn.query(sql, [Username, Email], function(err, result, fields) {
-        if (err) throw err;
-        callback(result[0]);
+        callback(err);
     });
 }
 
 var registerBreezecard = function(BreezecardNum, Username, callback) {
     var sql = "INSERT INTO Breezecard(BreezecardNum, Value, BelongsTo) VALUES (?, ?, ?);";
     conn.query(sql, [BreezecardNum, 0.00, Username], function(err, result, fields) {
-        if (err) throw err;
-        callback(result[0]);
+        callback(err);
     });
 }
 
@@ -142,8 +141,7 @@ var checkBreezecard = function(BreezecardNum, callback) {
 var createConflict = function(Username,BreezecardNum, callback) {
     var sql = "INSERT INTO Conflict(Username, BreezecardNum) VALUES (?, ?);";
     conn.query(sql, [Username, BreezecardNum], function(err, result, fields) {
-        if (err) throw err;
-        callback(result);
+        callback(err);
     });
 }
 
@@ -165,3 +163,4 @@ module.exports.registerBreezecard = registerBreezecard;
 module.exports.checkBreezecard = checkBreezecard;
 module.exports.createConflict = createConflict;
 module.exports.loginCheck = loginCheck;
+module.exports.adminCheck = adminCheck;
