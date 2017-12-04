@@ -141,10 +141,17 @@ app.get('/suspendedCardsData', function (req, res) {
 });
 
 app.post('/updateOwner', function (req, res) {
-    dbconn.updateOwner(req.body.Username, req.body.BreezecardNum, function (result) {
-        console.log('Updated Owner');
+
+    dbconn.updateOwner(req.body.Username, req.body.otherUser, req.body.BreezecardNum, function (result) {
+        //Check if old owner or new owner still has a breezecard, if not then generate new one
+        dbconn.checkBreezecardOwnership(req.body.otherUser, function (result) {
+            var count = result[0].count;
+            if (count == 0) {
+                insertBreezecard(req.body.otherUser);
+            }
+        });
+        res.send({ 'message': 'success' });
     });
-    res.send({ 'message': 'pending' });
 });
 
 app.post('/login', function (req, res) {
@@ -158,7 +165,7 @@ app.post('/login', function (req, res) {
         dbconn.adminCheck(req.body.Username, function (result) {
             IsAdmin = result[0].count2;
             //User is admin
-            console.log(IsAdmin);
+            // console.log(IsAdmin);
             if (loginExists == 0) {
                 res.send({ 'message': 'loginError' });
             } else if (loginExists == 1 && IsAdmin == 1) {
@@ -194,7 +201,7 @@ app.post('/registerAccount', function (req, res) {
                     dbconn.checkBreezecard(random, function (result) {
                         count = result[0].count;
                         if (count == 1) {
-                            console.log('count is 1, random num exists already, generating another');
+                            // console.log('count is 1, random num exists already, generating another');
                             random = generateBreezecard();
                         }
                     });
@@ -225,32 +232,16 @@ app.post('/registerAccount', function (req, res) {
                 dbconn.checkBreezecard(req.body.BreezecardNum, function (result) {
                     var count = result[0].count;
                     if (count == 1) {
-                        console.log('count is 1, user entered a breezenum already in database, generating random num');
+                        // console.log('count is 1, user entered a breezenum already in database, generating random num');
                         var random = generateBreezecard();
                         dbconn.createConflict(req.body.Username, req.body.BreezecardNum, function (err) {
-                            if (err) {
-                                res.send({ 'message': 'conflictError' });
-                                return;
-                            } else {
-                                res.send({ 'message': 'sameBreezecard' });
-                                return;
-                            }
-                        });
-                        dbconn.registerBreezecard(random, req.body.Username, function (err) {
-                            if (err) {
-                                res.send({ 'message': 'breezecardError' });
-                                return;
-                            } else res.send({ 'message': 'success' });
-                            return;
+                            res.send({ 'message': 'sameBreezecard' });
+                            insertBreezecard(req.body.Username);
                         });
                     } else {
                         //use user's unique breezecard
                         dbconn.registerBreezecard(req.body.BreezecardNum, req.body.Username, function (result) {
-                            if (err) {
-                                res.send({ 'message': 'breezecardError' });
-                            } else {
-                                res.send({ 'message': 'success' });
-                            }
+                            res.send('message');
                         });
                     }
                 });
@@ -288,6 +279,94 @@ app.post('/passengerFlowData', function (req, res) {
 
     dbconn.passengerFlowData(start, end, req.body.sort, req.body.desc, function (result) {
         res.send(result);
+    });
+});
+
+app.get('/stationListData', function (req, res) {
+    dbconn.stationListData(function (result) {
+        var actual = [];
+        for (var i = 0; i < result.length; i++) {
+            actual.push({ 'value': result[i].StopID, 'label': result[i].Name + " (" + (result[i].IsTrain ? "Train) " : "Bus) ") + "- $" + result[i].EnterFare });
+        }
+        console.log(result[i]);
+        res.send(actual);
+    });
+});
+
+app.post('/endStationListData', function (req, res) {
+    dbconn.endStationListData(req.body.Start, function (result) {
+        var actual = [];
+        for (var i = 0; i < result.length; i++) {
+            actual.push({ 'value': result[i].StopID, 'label': result[i].Name + " (" + (result[i].IsTrain ? "Train) " : "Bus) ") + "- $" + result[i].EnterFare });
+        }
+        console.log(result);
+        res.send(actual);
+    });
+});
+
+app.get('/passengerCardData', function (req, res) {
+    dbconn.passengerCardData(function (result) {
+
+        res.send(result);
+    });
+});
+
+app.post('/startTrip', function (req, res) {
+    dbconn.startTrip(req.body.Start, req.body.BreezecardNum);
+});
+
+app.post('/endTrip', function (req, res) {
+    dbconn.endTrip(req.body.End, req.body.BreezecardNum);
+});
+
+app.post('/removeCard', function (req, res) {
+    dbconn.removeCard(req.body.BreezecardNum);
+});
+
+app.get('/tripHistoryData', function (req, res) {
+    dbconn.tripHistoryData(function (result) {
+        res.send(result);
+    });
+});
+
+app.post('/addCard', function (req, res) {
+    dbconn.addCard(req.body.BreezecardNum);
+});
+
+app.post('/addValue', function (req, res) {
+    dbconn.addValue(req.body.Value, req.body.Card);
+});
+
+app.post('/updateHistory', function (req, res) {
+    var start = req.body.Start;
+    var end = req.body.End;
+    if (start == '') {
+        start = '1000/01/01 00:00:00';
+    }
+    if (end == '') {
+        end = '9999/12/31 00:00:00';
+    }
+    dbconn.updateHistory(start, end, function (result) {
+        //console.log(result);
+        res.send(result);
+    });
+});
+
+app.get('/inProgress', function (req, res) {
+    dbconn.inProgress(function (result) {
+        res.send(result[0]);
+    });
+});
+
+app.post('/getFare', function (req, res) {
+    dbconn.getFare(req.body.Start, function (result) {
+        res.send(result[0]);
+    });
+});
+
+app.post('/getValue', function (req, res) {
+    dbconn.getValue(req.body.BreezecardNum, function (result) {
+        res.send(result[0]);
     });
 });
 

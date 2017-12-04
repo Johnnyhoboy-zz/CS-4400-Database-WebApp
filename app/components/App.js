@@ -27,23 +27,17 @@ var LogIn = React.createClass({
 	        <br />
 	    	<button onClick={this.login}>Login</button> <br /> <br/>
 	    	<button onClick={this.nRegistration}>Register</button> <br /> <br />
-	    	<button onClick={this.nPassengerFunctionality}>Go To Passenger Functionality</button> <br /> <br />
-	    	<button onClick={this.nAdminFunctionality}>Go To Admin Functionality</button> <br />
 	    	</center>
     	</div>
     	); 
 	},
-	
 	userChange : function(e) {
 		this.setState({ userName: e.target.value} );
 	},
 	passChange : function(e) {
 		this.setState({ password: e.target.value} );
 	},
-	
-	
 	login: function() {
-
 		if (this.state.userName == '' || this.state.password == '') {
 			alert('Please fill out all non-optional fields');
 			return;
@@ -91,7 +85,7 @@ var Registration = React.createClass({
 			  <input type="password" onChange={this.passChange}/><br />
 			  <label>Confirm Password: </label>
 			  <input type="password" onChange={this.confirmPassChange} /><br />
-			  
+
 			  <h3>Breeze Card</h3>
 			  <input type="radio" name="UseBreezeCard" value="old" checked={this.state.type!='new'} onChange={this.typeChange}/><label>Use my existing Breeze Card</label><br />
 			  <label>Card Number: </label>
@@ -102,13 +96,13 @@ var Registration = React.createClass({
 	        <br />
 
 	    	<button onClick={this.register}>Create Account</button>
-	    	<button onClick={this.nLogin}>Back</button> 
+	    	<button onClick={this.nLogin}>Back</button>
 	    	</center>
 
     	</div>
-    	); 
+    	);
 	},
-	
+
 	userChange : function(e) {
 		this.setState({ userName: e.target.value} );
 	},
@@ -158,10 +152,6 @@ var Registration = React.createClass({
 					alert('The username you inputed already exists!');
 				} else if (data.message == 'emailError') {
 					alert('The email you inputed already exists!');
-				} else if (data.message == 'breezecardError') {
-					alert('The breezecard you entered already exists!');
-				} else if (data.message == 'conflictError') {
-					alert('The Conflict already exists!');
 				} else if (data.message == 'sameBreezecard') {
 					alert('You entered in an existing Breezecard, suspending it, and generating new Breezecard');
 					showPassengerFunctionality();
@@ -170,129 +160,368 @@ var Registration = React.createClass({
 				}
             });
 	},
-	
+
 	nPassengerFunctionality : function() { showPassengerFunctionality(); },
 	nLogin : function() { showLogIn(); }
-	
+
 });
 
+var chosenCard = '';
+var chosenStarting= '';
+var chosenEnding = '';
 var PassengerFunctionality = React.createClass({
-    render : function() { return (
-        <div class="PassengerFunctionality">
-            <p>Welcome To Marta</p>
 
-            <p>Passenger Functionality</p>
+	getInitialState : function() {
+		return { data: [], cardData: [], endData: [],selectedCard: chosenCard, selectedStart: chosenStarting, selectedEnd: chosenEnding, value: '', fare: '', prompt: 'Start Trip', disable: '', count: '', current: {}, currentE: {} }
+	},
+	componentDidMount : function() {
+		fetch(server + "/stationListData")
+		.then(response => response.json())
+		.then(data => {console.log(data); this.setState({ data: data });}
+		);
 
-            <div><label>Breeze Card </label><input type="text" /><a href="#"onClick={this.nManageCards}>Manage Cards</a></div>
-            <br/>
-            <label>Balance </label><label>$12 </label>
-            <br/>
-            <br/>
-            <label>Start At </label>
-            <select>
-                <option value="Dunwoody">Dunwoody</option>
-                <option value="North Ave">NA</option>
-                <option value="North Spring">northspring</option>
-                <option value="Midtown">midtown</option>
-            </select><a href="#">Start Trip</a>
-            <br/>
-            <br/>
-            <label>End At </label>
-            <select>
-                <option value="Dunwoody">Dunwoody</option>
-                <option value="North Ave">NA</option>
-                <option value="North Spring">northspring</option>
-                <option value="Midtown">midtown</option>
-            </select><a href="#">End Trip</a>
-            <br/>
-            <br/>
-            <button onClick={this.nTripHistory}>Go To Trip History</button>
-            <br/>
-            <button onClick={this.nLogin}>Back</button>
-        </div>
+		fetch(server + "/stationListData")
+		.then(response => response.json())
+		.then(data => this.setState({ endData: data })
+		);
+
+		fetch(server + "/passengerCardData")
+		.then(response => response.json())
+		.then(data => this.setState({ cardData: data })
+		);
+
+		fetch(server + "/inProgress")
+		.then(response => response.json())
+		.then(data => {console.log(data); this.setState({ count: data.count }, function () {
+				if(this.state.count > 0) {
+					this.setState({ prompt: 'In Progress', disable: 'true'} );
+				}
+			});}
+		);
+
+		if(this.state.count > 0) {
+			this.setState({ prompt: 'In Progress', disable: 'true'} );
+		}
+	},
+    render : function() { 
+    	var cards = this.state.cardData.map(function(items) {
+    		return items.BreezecardNum;
+    	});
+		return (
+    	
+    	<div class="PassengerFunctionality">
+	    	<p>Welcome To Marta</p>
+	    	
+	    	<p>Passenger Functionality</p>
+
+	    	<div style={{width: "250px"}}>
+	    		<label>Breeze Card </label>
+	    		<Dropdown disabled={this.state.disable} options={cards} onChange={this.selectedCard} value={this.state.selectedCard} />
+	    		<a href="#"onClick={this.nManageCards}>Manage Cards</a>
+	    	</div>
+	    	<br/>
+	    	<p>Balance: ${this.state.value}</p>
+	    	<br/>
+	    	<br/>
+	    	<div style={{width: "250px"}}>
+	    		<label>Start At </label>
+	    		<Dropdown options={this.state.data} onChange={this.selectedStart} value={this.state.current.label} />
+	    		<a href="#"onClick={this.startTrip}>{this.state.prompt}</a>
+			</div>
+			<br/>
+			<br/>
+			<div style={{width: "250px"}}>
+				<label>End At </label>
+	    		<Dropdown options={this.state.endData} onChange={this.selectedEnd} value={this.state.currentE.label} />
+	    		<a href="#"onClick={this.endTrip}>End Trip</a>
+			</div>
+			<br/>
+			<br/>
+	    	<button onClick={this.nTripHistory}>Go To Trip History</button>
+	    	<br/>
+	    	<button onClick={this.nLogin}>Back</button>
+    	</div>
+    	); 
+	},
+	selectedCard : function(e) {
+		this.setState({ selectedCard: e.value}, function() {
+		fetch(server + '/getValue',
+        {method: 'post',
+         headers: {'Content-Type': 'application/json'},
+         body: JSON.stringify({
+             "BreezecardNum": this.state.selectedCard,
+         })
+        }).then(response => response.json())
+        .then(data => this.setState({value : data.Value}));
+        });
+	},
+ 
+ 	selectedStart : function(e) {
+		this.setState({ selectedStart: e.value, current: {'value': e.value, 'label': e.label}}, function() {
+		chosenStarting = this.state.selectedStart;
+		fetch(server + '/getFare',
+        {method: 'post',
+         headers: {'Content-Type': 'application/json'},
+         body: JSON.stringify({
+             "Start": this.state.selectedStart,
+         })
+        }).then(response => response.json())
+        .then(data => { console.log(this.state); 
+        this.setState({fare : data.EnterFare})});
+   
+		fetch(server + '/endStationListData',
+        {method: 'post',
+         headers: {'Content-Type': 'application/json'},
+         body: JSON.stringify({
+             "Start": e.value,
+         })
+        }).then(response => response.json())
+        .then(data => this.setState({endData : data, currentE: {}})
         );
-    },
-    nTripHistory : function() { showTripHistory(); },
-    nManageCards : function() { showManageCards(); },
-    nLogin : function() { showLogIn(); }
+	    });
+	},
+
+	selectedEnd : function(e) {
+		this.setState({ selectedEnd: e.value, currentE: {'value': e.value, 'label': e.label}}, function() {
+			chosenEnding = this.state.selectedEnd;
+		});
+	},
+
+	startTrip : function() {
+		if(this.state.prompt == 'In Progress') {
+			return;
+		}
+		if(this.state.selectedCard == '') {
+			alert('Breezecard cannot be null');
+			return;
+		}
+		if(this.state.value < this.state.fare) {
+        	alert('Insufficient funds');
+        	return;
+        }
+		fetch(server + '/startTrip', {
+			method: 'post',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify({
+				 "Start": this.state.current.value,
+				 "BreezecardNum": this.state.selectedCard,
+			})
+		});
+		this.setState({ prompt: 'In Progress', disable: 'true'} );
+	},
+	endTrip : function() {
+		if(this.state.selectedStart == '' && prompt == 'Start Trip') {
+			alert('Must start trip before you can end it');
+			return;
+		}
+		fetch(server + '/endTrip', {
+			method: 'post',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify({
+				 "End": this.state.currentE.value,
+				 "BreezecardNum": this.state.selectedCard,
+			})
+		});
+		this.setState({prompt: 'Start Trip', disable: 'false'} );
+	},
+	nTripHistory : function() { showTripHistory(); },
+	nManageCards : function() { showManageCards(); },
+	nLogin : function() { showLogIn(); }
 });
 
 var ManageCards = React.createClass({
     getInitialState : function() {
-        var oColumns = [
-            { Header: 'Card Number', accessor: 'cardnum' },
-            { Header: 'Value', accessor: 'val' },
-            { Header: ' ', accessor: 'remove' },
-        ];
-        var oData = [
-            { cardnum: '1111 2222 3333 4444', val: '15.50', remove: <a href="#">Remove</a> },
-            { cardnum: '5555 6666 7777 8888', val: '20.12', remove: <a href="#">Remove</a> }
-        ];
-        return { columns: oColumns, data: oData };
+    	var oColumns = [
+			{
+                Header: '',
+                accessor: 'editButton',
+                Cell: (row) => (
+                    <div>
+						<input type="radio" name="cardNumber" value="select" 
+								onClick={() => this.selectRow(row)}/>
+					</div>
+                ),
+                maxWidth: 40
+            },
+			{ Header: 'Card Number', accessor: 'BreezecardNum' },
+			{ Header: 'Value', accessor: 'Value' },
+			
+		];
+        return { columns: oColumns, data: [], selectedRow: null, card: '', value: '', credit: '' };
     },
+    selectRow : function(row) {
+		this.setState( {selectedRow: row.original} );
+	},
+	componentDidMount : function() {
+		fetch(server + "/passengerCardData")
+		.then(response => response.json())
+		.then(data => this.setState({ data: data })
+		);
+	},
     render : function() { return (
-        <div class="ManageCards">
-            <p>Manage Cards</p>
+    	<div class="ManageCards">
+	    	<p>Manage Cards</p>
             <p>Breeze Cards</p>
             <ReactTable
-                    data={this.state.data}
-                    columns={this.state.columns}
-                    defaultPageSize={5}
-                    />
+				    data={this.state.data}
+				    columns={this.state.columns}
+					sortable={false}
+					defaultPageSize={10} 
+				  />
+		    	<br/>
+		    	<button onClick={this.removeCard}>Remove Selected Card</button>
+		    	<br/>
+                <input type="text" onChange={this.newCard}/>
+	    	    <button onClick={this.addCard}>Add Card</button>
+	    	    <br/>
+	    	    <p>Add Value to Selected Card</p>
+	    	    <div><label>Credit Card # </label><input type="text" onChange={this.credit}/></div>
+	    	    <br/>
+	    	    <div><label>Value </label><input type="text" onChange={this.newVal} /></div>
+	    	    <br/>
+	    	    <button onClick={this.valueChange}>Add Value</button>
+	    	    <br/>
+	    	    <div style={{width: "250px"}}>
+                <Dropdown items={this.state.data} />
+                </div>
                 <br/>
-                <input type="text" />
-                <button>Add Card</button>
-                <br/>
-                <br/>
-                <p>Add Value to Selected Card</p>
-                <div><label>Credit Card # </label><input type="text" /></div>
-                <br/>
-                <div><label>Value </label><input type="text" /></div>
-                <br/>
-                <button onClick={this.nPassengerFunctionality}>Back To Passenger Functionality</button>
-            </div>
-        );
-    },
-    nPassengerFunctionality : function() { showPassengerFunctionality(); }
+		    	<button onClick={this.nPassengerFunctionality}>Back To Passenger Functionality</button>
+	    	</div>
+    	);
+	},
+
+	removeCard : function () {
+		if(this.state.data.length == 1) {
+			alert('Each passenger must have at least one Breezecard');
+			return;
+		} else {
+			fetch(server + '/removeCard', {
+			method: 'post',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify({
+				 "BreezecardNum": this.state.selectedRow.BreezecardNum
+			})
+		});
+		fetch(server + "/passengerCardData")
+		.then(response => response.json())
+		.then(data => this.setState({ data: data })
+		);
+		}
+	},
+
+	newCard : function(e) {
+		this.setState({ card: e.target.value} );
+	},
+
+	credit : function(e) {
+		this.setState({ credit: e.target.value});
+	},
+
+	newVal : function(e) {
+		this.setState({ value: e.target.value} );
+	},
+
+	addCard : function() {
+		if(this.state.card == '') {
+			alert('Please fill out the card field');
+			return;
+		}
+		if(this.state.credit == '') {
+			alert('Must have credit card to add value');
+			return;
+		}
+		if(this.state.card.length != 16 || this.state.credit.length != 16) {
+			alert('Cards must have 16 digits');
+			return;
+		}
+		fetch(server + '/addCard', {
+			method: 'post',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify({
+				 "BreezecardNum": this.state.card
+			})
+		});
+	},
+    
+    valueChange: function() {
+		fetch(server + '/addValue', {
+			method: 'post',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify({
+				 "Value": this.state.value,
+				 "Card": this.state.selectedRow.BreezecardNum
+			})
+		});
+	},
+
+	nPassengerFunctionality : function() { showPassengerFunctionality(); }
 });
 
 var TripHistory = React.createClass({
     getInitialState : function() {
-        var oColumns = [
-            { Header: 'Time', accessor: 'time' },
-            { Header: 'Source', accessor: 'source' },
-            { Header: 'Destination', accessor: 'destination' },
-            { Header: 'Fare Paid', accessor: 'fairpaid' },
-            { Header: 'Card #', accessor: 'card' },
-        ];
-        var oData = [
-            { time: '11:11', source: 'North Ave',destination: 'Dunwoody', fairpaid: '$1.50', card: '4411' },
-            { time: '11:22', source: 'Dun',destination: 'NA', fairpaid: '$3.50', card: '1122' }
-        ];
-        return { columns: oColumns, data: oData };
+		var oColumns = [
+			{ Header: 'Time', accessor: 'StartTime' },
+            { Header: 'Source', accessor: 'StartsAt' },
+            { Header: 'Destination', accessor: 'EndsAt' },
+            { Header: 'Fare Paid', accessor: 'Tripfare' },
+            { Header: 'Card #', accessor: 'BreezecardNum' },
+		];
+		return { columns: oColumns, data: [], start: '', end: ''};
+	},
+	
+	
+  	render : function() {
+  		return (
+	    	<div class="TripHistory">
+		    <h1>Trip History</h1>
+		    <div><label>Input time in the follow format of YYYY-MM-DD hh-mm-ss </label></div>
+	    	<div><label>Start </label><input type="dateTime-local" onChange={this.start} value={this.state.start}/></div>
+	    	<br/>
+	    	<div><label>End </label><input type="dateTime-local" onChange={this.end} value={this.state.end}/></div>
+	    	<br/>
+	    	<button onClick={this.updateHist}>Update</button>
+	    	<button onClick={this.reset}>Reset</button>
+	    	<br/>
+	    	<ReactTable
+				data={this.state.data}
+				columns={this.state.columns}
+				sortable={false}
+				defaultPageSize={10} 
+			/>	
+		    	
+	    	<button onClick={this.nPassengerFunctionality}>Back to Passenger Functionality</button>
+	    	</div>
+    	);
+	},
+	componentDidMount : function() {
+		this.updateHist();
+	},
+    start : function(e) {
+		this.setState({ start: e.target.value} );
+	},
+
+	end: function(e) {
+		this.setState({ end: e.target.value} );
+	},
+
+	updateHist: function() {
+		fetch(server + '/updateHistory',
+        {method: 'post',
+         headers: {'Content-Type': 'application/json'},
+         body: JSON.stringify({
+             "Start": this.state.start,
+             "End": this.state.end, 
+         })
+        }).then(response => response.json())
+        .then(data => this.setState({data : data}));
     },
-    render : function() { return (
-        <div class="TripHistory">
-            <p>Trip History</p>
-            <div><label>Start </label><input type="text" /></div>
-            <br/>
-            <div><label>End </label><input type="text" /></div>
-            <br/>
-            <button onClick={this.nUpdated}>Update</button>
-            <button onClick={this.nReset}>Reset</button>
-            <br/>
-            <ReactTable
-                    data={this.state.data}
-                    columns={this.state.columns}
-                    defaultPageSize={5}
-                    />
-                <br/>
-            <button onClick={this.nPassengerFunctionality}>Back to Passenger Functionality</button>
-        </div>
-        );
+
+    resetData: function() {
+        this.setState({ columns: oColumns, data: [], start: '', end: ''});
     },
-    nPassengerFunctionality : function() { showPassengerFunctionality(); }
+	nPassengerFunctionality : function() { showPassengerFunctionality(); }
 });
+
 
 var AdminFunctionality = React.createClass({
     render : function() { return (
@@ -543,7 +772,7 @@ var SuspendedCards = React.createClass({
 						accessor: 'editButton',
 						Cell: (row) => (
 							<div>
-								<input type="radio" name="ownertype" value="select" 
+								<input type="radio" name="ownertype" value="select"
 										onClick={() => this.selectRow(row)}/>
 							</div>
 						),
@@ -556,11 +785,11 @@ var SuspendedCards = React.createClass({
 			];
 			return { columns: oColumns, data: [], selectedRow: null };
 		},
-		
+
 		selectRow : function(row) {
 			this.setState( {selectedRow: row.original} );
 		},
-		
+
 		componentDidMount : function() {
 			fetch(server + "/suspendedCardsData")
 			.then(response => response.json())
@@ -573,7 +802,7 @@ var SuspendedCards = React.createClass({
 				.then(data => this.setState({ data: data })
 				);
 		},
-	  	render : function() { 
+	  	render : function() {
 	  		return (
 		    	<div class="SuspensedCardManagement">
 			    	<h1>Suspended Cards</h1>
@@ -593,18 +822,20 @@ var SuspendedCards = React.createClass({
 		    	</div>
 	    	);
 		},
-	changeNewOwner : function() { 
+	changeNewOwner : function() {
 		if (!this.state.selectedRow) {
 			alert('You need to choose a Breezecard before you can assign it.');
 		} else {
 
 			var newUser = this.state.selectedRow.Username;
+			var oldUser = this.state.selectedRow.BelongsTo;
 			var breezeNum = this.state.selectedRow.BreezecardNum;
 			fetch(server + '/updateOwner', {
 				method: 'post',
 				headers: {'Content-Type': 'application/json'},
 				body: JSON.stringify({
 					"Username": newUser,
+					"otherUser" : oldUser,
 					"BreezecardNum": breezeNum
 				})
 			}).then(function(response) {
@@ -612,18 +843,20 @@ var SuspendedCards = React.createClass({
 			}).then(data => this.refreshState() );
 		}
 	},
-	changePrevOwner : function() { 
+	changePrevOwner : function() {
 		if (!this.state.selectedRow) {
 			alert('You need to choose a Breezecard before you can assign it.');
 		} else {
 
 			var oldUser = this.state.selectedRow.BelongsTo;
+			var newUser = this.state.selectedRow.Username;
 			var breezeNum = this.state.selectedRow.BreezecardNum;
 			fetch(server + '/updateOwner', {
 				method: 'post',
 				headers: {'Content-Type': 'application/json'},
 				body: JSON.stringify({
 					"Username": oldUser,
+					"otherUser" : newUser,
 					"BreezecardNum": breezeNum
 				})
 			}).then(function(response) {

@@ -205,13 +205,11 @@ var suspendedCardsData = function(callback) {
     });
 };
 
-var updateOwner = function(Username, BreezeCardNum, callback) {
+var updateOwner = function(Username, OldName, BreezeCardNum, callback) {
     var sql = "UPDATE Breezecard SET BelongsTo= ? WHERE BreezecardNum=?";
-    conn.query(sql, [Username, BreezeCardNum], function(err, result, fields) {
-        if (err) throw err;
-    });
-    sql = "DELETE FROM Conflict WHERE Username = ?";
-    conn.query(sql, [Username], function(err, result, fields) {
+    conn.query(sql, [Username, BreezeCardNum]);
+    sql = "DELETE FROM Conflict WHERE (Username = ? OR Username = ?) AND BreezecardNum = ?";
+    conn.query(sql, [Username, OldName, BreezeCardNum], function(err, result, fields) {
         if (err) throw err;
         callback(result);
     });
@@ -271,6 +269,113 @@ var createConflict = function(Username,BreezecardNum, callback) {
     });
 };
 
+var inProgress = function(callback) {
+    var sql = "SELECT COUNT(*) as count FROM Trip WHERE EndsAt is null";
+    conn.query(sql, function(err, result, fields) {
+        if (err) throw err;
+        callback(result);
+    });
+}
+
+var getValue = function(breezecard, callback) {
+    var sql = "SELECT Value FROM Breezecard WHERE BreezecardNum = ?";
+    conn.query(sql, [breezecard], function(err, result, fields) {
+        if (err) throw err;
+        callback(result);
+    });
+};
+
+var startTrip = function(start, breezecard) {
+    var sql = "INSERT INTO Trip(Tripfare, StartsAt, BreezecardNum) " +
+    "VALUES ((SELECT EnterFare FROM Station WHERE StopID=?),?,?)";
+    conn.query(sql, [start, start, breezecard], function(err, result, fields) {
+        if (err) throw err;
+    });
+     sql = "UPDATE Breezecard SET Value = Value - (SELECT EnterFare FROM Station WHERE Name=?) WHERE BreezecardNum = ?";
+    conn.query(sql, [start, breezecard], function(err, result, fields) {
+        if (err) throw err;
+    });
+};
+
+var getFare = function(start, callback) {
+    var sql = "SELECT EnterFare FROM Station WHERE Name=?";
+    conn.query(sql, [start], function(err, result, fields) {
+        if (err) throw err;
+        callback(result);
+    });
+}
+
+var endTrip = function(end, breezecard) {
+    var sql = "UPDATE Trip SET EndsAt = ? WHERE EndsAt is null AND BreezecardNum = ?";
+    conn.query(sql, [end, breezecard], function(err, result, fields) {
+        if (err) throw err;
+        
+    });
+};
+
+var stationListData = function(callback) {
+    var sql = "SELECT StopID, Name, IsTrain, EnterFare FROM Station WHERE ClosedStatus = false";
+    conn.query(sql, function(err, result, fields) {
+        if (err) throw err;
+        
+        callback(result);
+    });
+};
+
+var endStationListData = function(start, callback) {
+    var sql = "SELECT StopID, Name, IsTrain, EnterFare FROM Station WHERE ClosedStatus = false AND (IsTrain= (SELECT IsTrain FROM Station WHERE StopID = ?))";
+    conn.query(sql, [start], function(err, result, fields) {
+        if (err) throw err;
+        callback(result);
+    });
+};
+
+var passengerCardData = function(callback) {
+    var sql = "SELECT BreezecardNum, Value FROM Breezecard WHERE BelongsTo='busrider73'";
+    conn.query(sql, function(err, result, fields) {
+        if (err) throw err;
+        callback(result);
+    });
+};
+
+var removeCard = function(breezecard) {
+    var sql = "UPDATE Breezecard SET BelongsTo = null WHERE BreezecardNum = ?";
+    conn.query(sql,[breezecard], function(err, result, fields) {
+        if (err) throw err;
+    });
+}
+
+var addValue = function(value, card) {
+    var sql = "UPDATE Breezecard SET Value = Value + ? WHERE BreezecardNum=? AND Value + ? <= 1000";
+    conn.query(sql, [value, card], function(err, result, fields) {
+        if (err) throw err;
+    });
+};
+
+var tripHistoryData = function(callback) {
+    var sql = "SELECT StartTime, StartsAt, EndsAt, Tripfare, BreezecardNum FROM Trip";
+    conn.query(sql, function(err, result, fields) {
+        if (err) throw err;
+        callback(result);
+    });
+};
+
+var addCard = function(breezecard) {
+    var sql = "INSERT INTO Breezecard(BreezecardNum, Value) VALUES (?,0)";
+    conn.query(sql,[breezecard], function(err, result, fields) {
+        if (err) throw err;
+    });
+};
+
+var updateHistory = function(start, end, callback) {
+    var sql = "SELECT StartTime, StartsAt, EndsAt, Tripfare, BreezecardNum FROM Trip" + 
+    " WHERE (StartTime BETWEEN ? AND ?)";
+    conn.query(sql, [start, end], function(err, result, fields) {
+        if (err) throw err;
+        callback(result);
+    });
+};
+
 var test = function() { console.log('test successful'); };
 
 module.exports.test = test;
@@ -297,3 +402,16 @@ module.exports.checkBreezecard = checkBreezecard;
 module.exports.createConflict = createConflict;
 module.exports.loginCheck = loginCheck;
 module.exports.adminCheck = adminCheck;
+module.exports.addCard = addCard;
+module.exports.getValue = getValue;
+module.exports.addValue = addValue;
+module.exports.inProgress = inProgress;
+module.exports.startTrip = startTrip;
+module.exports.endTrip = endTrip;
+module.exports.getFare = getFare;
+module.exports.passengerCardData = passengerCardData;
+module.exports.tripHistoryData = tripHistoryData;
+module.exports.updateHistory = updateHistory;
+module.exports.stationListData = stationListData;
+module.exports.endStationListData = endStationListData;
+module.exports.removeCard = removeCard;
