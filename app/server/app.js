@@ -107,16 +107,39 @@ app.post('/passengerFlowData', (req, res) => {
 
 app.get('/stationListData', (req, res) => {
     dbconn.stationListData( function(result) {
+        var actual = [];
+        for(var i = 0; i < result.length; i++) {
+            actual.push({'value': result[i].StopID, 'label': result[i].Name + " (" + (result[i].IsTrain ? "Train) " : "Bus) ") + "- $" + result[i].EnterFare});
+        }
+        console.log(result[i]);
+        res.send(actual);
+    });
+});
+
+app.post('/endStationListData', (req, res) => {
+    dbconn.endStationListData(req.body.Start, function(result) {
+        var actual = [];
+        for(var i = 0; i < result.length; i++) {
+            actual.push({'value': result[i].StopID, 'label': result[i].Name + " (" + (result[i].IsTrain ? "Train) " : "Bus) ") + "- $" + result[i].EnterFare});
+        }
         console.log(result);
-        res.send(result);
+        res.send(actual);
     });
 });
 
 app.get('/passengerCardData', (req, res) => {
     dbconn.passengerCardData( function(result) {
-        console.log(result);
+        
         res.send(result);
     });
+});
+
+app.post('/startTrip', (req, res) => {
+    dbconn.startTrip(req.body.Start, req.body.BreezecardNum);
+});
+
+app.post('/endTrip', (req, res) => {
+    dbconn.endTrip(req.body.End, req.body.BreezecardNum);
 });
 
 app.post('/removeCard', (req, res) => {
@@ -125,7 +148,6 @@ app.post('/removeCard', (req, res) => {
 
 app.get('/tripHistoryData', (req, res) => {
     dbconn.tripHistoryData( function(result) {
-        console.log(result);
         res.send(result);
     });
 });
@@ -148,9 +170,27 @@ var start = req.body.Start;
         end = '9999/12/31 00:00:00';
     }
      dbconn.updateHistory(start, end, function(result) {
-        console.log(result);
+        //console.log(result);
         res.send(result);
      });
+});
+
+app.get('/inProgress', (req, res) => {
+    dbconn.inProgress(function(result) {
+        res.send(result[0]);
+    });
+});
+
+app.post('/getFare', (req, res) => {
+    dbconn.getFare(req.body.Start, function(result) {
+        res.send(result[0]);
+    });
+});
+
+app.post('/getValue', (req, res) => {
+    dbconn.getValue(req.body.BreezecardNum, function(result) {
+        res.send(result[0]);
+    });
 });
 
 export default app;
