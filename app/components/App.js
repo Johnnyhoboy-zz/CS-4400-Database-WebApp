@@ -12,7 +12,7 @@ const server = "http://localhost:8080";
 
 var LogIn = React.createClass({
 	getInitialState : function() {
-		return { userName: '', password: ''};
+		return { username: '', password: ''};
 	},
     render : function() { return (
     	<div className="LogIn">
@@ -32,13 +32,13 @@ var LogIn = React.createClass({
     	); 
 	},
 	userChange : function(e) {
-		this.setState({ userName: e.target.value} );
+		this.setState({ username: e.target.value} );
 	},
 	passChange : function(e) {
 		this.setState({ password: e.target.value} );
 	},
 	login: function() {
-		if (this.state.userName == '' || this.state.password == '') {
+		if (this.state.username == '' || this.state.password == '') {
 			alert('Please fill out all non-optional fields');
 			return;
 		} 
@@ -46,7 +46,7 @@ var LogIn = React.createClass({
 			method: 'post',
 			headers: {'Content-Type': 'application/json'},
 			body: JSON.stringify({
-				 "Username": this.state.userName,
+				 "Username": this.state.username,
 				 "Password": this.state.password,
 			})
 		}).then(function(response) {
@@ -69,7 +69,7 @@ var LogIn = React.createClass({
 
 var Registration = React.createClass({
 	getInitialState : function() {
-		return { userName: '', email: '', password: '', confirmPassword: '', breezeCardNum: '', type: "new"};
+		return { username: '', email: '', password: '', confirmPassword: '', breezeCardNum: '', type: "new"};
 	},
     render : function() { return (
     	<div class="Registration">
@@ -104,7 +104,7 @@ var Registration = React.createClass({
 	},
 
 	userChange : function(e) {
-		this.setState({ userName: e.target.value} );
+		this.setState({ username: e.target.value} );
 	},
 	emailChange : function(e) {
 		this.setState({ email: e.target.value} );
@@ -122,7 +122,7 @@ var Registration = React.createClass({
 		this.setState({ type: e.target.value} );
 	},
 	register : function() {
-		if (this.state.userName == '' || this.state.email == '' || this.state.password == '' || this.state.confirmPassword == '') {
+		if (this.state.username == '' || this.state.email == '' || this.state.password == '' || this.state.confirmPassword == '') {
 			alert('Please fill out all non-optional fields');
 			return;
 		} else if (this.state.password.length <=7 || this.state.password != this.state.confirmPassword) {
@@ -139,7 +139,7 @@ var Registration = React.createClass({
 			method: 'post',
 			headers: {'Content-Type': 'application/json'},
 			body: JSON.stringify({
-				 "Username": this.state.userName,
+				 "Username": this.state.username,
 				 "Email": this.state.email,
 				 "Password": this.state.password,
 				 "BreezecardNum": this.state.breezeCardNum,
@@ -163,7 +163,7 @@ var Registration = React.createClass({
 
 	nPassengerFunctionality : function() { showPassengerFunctionality(this.state.username); },
 	nLogin : function() { showLogIn(); }
-
+	
 });
 
 var chosenCard = '';
@@ -196,7 +196,7 @@ var PassengerFunctionality = React.createClass({
 		.then(data => this.setState({ cardData: data })
 		);
 
-		fetch(server + "/inProgress")
+		fetch(server + "/inProgress", {method:"post",headers:{'Content-Type':'application/json'},body: JSON.stringify({"breezecard":this.state.chosenCard})})
 		.then(response => response.json())
 		.then(data => { this.setState({ count: data.count }, function () {
 				if(this.state.count > 0) {
@@ -205,9 +205,6 @@ var PassengerFunctionality = React.createClass({
 			});}
 		);
 
-		if(this.state.count > 0) {
-			this.setState({ prompt: 'In Progress', disable: 'true'} );
-		}
 	},
     render : function() { 
     	var cards = this.state.cardData.map(function(items) {
@@ -222,7 +219,7 @@ var PassengerFunctionality = React.createClass({
 
 	    	<div style={{width: "250px"}}>
 	    		<label>Breeze Card </label>
-	    		<Dropdown disabled={this.state.disable} options={cards} onChange={this.selectedCard} value={this.state.selectedCard} />
+	    		<Dropdown options={cards} onChange={this.selectedCard} value={this.state.selectedCard} />
 	    		<a href="#"onClick={this.nManageCards}>Manage Cards</a>
 	    	</div>
 	    	<br/>
@@ -232,7 +229,7 @@ var PassengerFunctionality = React.createClass({
 	    	<div style={{width: "250px"}}>
 	    		<label>Start At </label>
 	    		<Dropdown options={this.state.data} onChange={this.selectedStart} value={this.state.current.label} />
-	    		<a href="#"onClick={this.startTrip}>{this.state.prompt}</a>
+	    		<a href="#" onClick={this.startTrip}>{this.state.prompt}</a>
 			</div>
 			<br/>
 			<br/>
@@ -247,7 +244,7 @@ var PassengerFunctionality = React.createClass({
 	    	<br/>
 	    	<button onClick={this.nLogin}>Back</button>
     	</div>
-    	); 
+    	);
 	},
 	selectedCard : function(e) {
 		this.setState({ selectedCard: e.value}, function() {
@@ -259,7 +256,7 @@ var PassengerFunctionality = React.createClass({
              "BreezecardNum": this.state.selectedCard,
          })
         }).then(response => response.json())
-        .then(data => this.setState({value : data.Value}));
+        .then(data => this.setState({value : data.Value}, ()=>this.componentDidMount()));
         });
 	},
  
@@ -302,7 +299,7 @@ var PassengerFunctionality = React.createClass({
 			alert('Breezecard cannot be null');
 			return;
 		}
-		if(this.state.value < this.state.fare) {
+		if(parseInt(this.state.value) < parseInt(this.state.fare)) {
         	alert('Insufficient funds');
         	return;
         }
@@ -317,7 +314,7 @@ var PassengerFunctionality = React.createClass({
 		this.setState({ prompt: 'In Progress', disable: 'true'} );
 	},
 	endTrip : function() {
-		if(this.state.selectedStart == '' && prompt == 'Start Trip') {
+		if(this.state.selectedStart == '' && this.state.prompt == 'Start Trip') {
 			alert('Must start trip before you can end it');
 			return;
 		}
@@ -328,7 +325,7 @@ var PassengerFunctionality = React.createClass({
 				 "End": this.state.currentE.value,
 				 "BreezecardNum": this.state.selectedCard,
 				 "sort": this.state.sort,
-             "desc": this.state.descending
+             	 "desc": this.state.descending
 			})
 		});
 		this.setState({prompt: 'Start Trip', disable: 'false'} );
@@ -399,7 +396,6 @@ var ManageCards = React.createClass({
 	    	    <button onClick={this.valueChange}>Add Value</button>
 	    	    <br/>
 	    	    <div style={{width: "250px"}}>
-                <Dropdown items={this.state.data} />
                 </div>
                 <br/>
 		    	<button onClick={this.nPassengerFunctionality}>Back To Passenger Functionality</button>
@@ -481,11 +477,7 @@ var ManageCards = React.createClass({
 			alert('Please fill out the card field');
 			return;
 		}
-		if(this.state.credit == '') {
-			alert('Must have credit card to add value');
-			return;
-		}
-		if(this.state.card.length != 16 || this.state.credit.length != 16) {
+		if(this.state.card.length != 16) {
 			alert('Cards must have 16 digits');
 			return;
 		}
@@ -496,10 +488,14 @@ var ManageCards = React.createClass({
 				"username": this.props.username,
 				 "BreezecardNum": this.state.card
 			})
-		});
+		}).then((response) => response.json()).then((data)=>{ this.update(); if (data.message) alert(data.message); });
 	},
     
     valueChange: function() {
+		if(this.state.credit == '' || this.state.credit.length != 16) {
+			alert('Must have 16-digit credit card to add value');
+			return;
+		}
 		fetch(server + '/addValue', {
 			method: 'post',
 			headers: {'Content-Type': 'application/json'},
@@ -507,10 +503,10 @@ var ManageCards = React.createClass({
 				 "Value": this.state.value,
 				 "Card": this.state.selectedRow.BreezecardNum
 			})
-		});
+		}).then((response) => this.update());
 	},
 
-	nPassengerFunctionality : function() { showPassengerFunctionality(username); }
+	nPassengerFunctionality : function() { showPassengerFunctionality(this.props.username); }
 });
 
 var TripHistory = React.createClass({
@@ -525,7 +521,7 @@ var TripHistory = React.createClass({
 		return { columns: oColumns, data: [], start: '', end: '', descending: '', descendingCheck: false, sort: 'StartTime'};
 	},
 	
-	
+
   	render : function() {
   		return (
 	    	<div class="TripHistory">
@@ -577,7 +573,7 @@ var TripHistory = React.createClass({
         {method: 'post',
          headers: {'Content-Type': 'application/json'},
          body: JSON.stringify({
-			 "Username": this.props.username,
+			 "username": this.props.username,
              "Start": this.state.start,
              "End": this.state.end,
              "sort": this.state.sort,
@@ -587,8 +583,8 @@ var TripHistory = React.createClass({
         .then(data => this.setState({data : data}));
     },
 
-    resetData: function() {
-        this.setState({ columns: oColumns, data: [], start: '', end: ''});
+    reset: function() {
+        this.setState({ start: '', end: ''}, () => this.updateHist());
     },
 	nPassengerFunctionality : function() { showPassengerFunctionality(this.props.username); }
 });
@@ -830,7 +826,7 @@ var BreezecardManagement = React.createClass({
     resetFields: function() {
         this.setState({owner: '', suspended: false, cardNumber: '', valueLow: '', valueHigh: '',
                        sort: "BreezecardNum", descending: '', descendingCheck: false, selectedRow: null,
-                       selected: breezeCardManagementOptions[0], setValue: '', transfer: ''});
+                       selected: breezeCardManagementOptions[0], setValue: '', transfer: ''}, () => this.updateData());
     },
     nAdminFunctionalitya : function() { showAdminFunctionality(); }
 });

@@ -335,11 +335,12 @@ app.get('/tripHistoryData', (req, res) => {
 });
 
 app.post('/addCard', (req, res) => {
-    dbconn.addCard(req.body.BreezecardNum, req.body.username);
+    dbconn.addCard(req.body.BreezecardNum, req.body.username, function(msg) { res.send({'message': msg})});
 });
 
 app.post('/addValue', (req, res) => {
      dbconn.addValue(req.body.Value, req.body.Card);
+     res.send({ 'message': 'success' });
 });
 
 app.post('/updateHistory', (req, res) => {
@@ -351,14 +352,15 @@ app.post('/updateHistory', (req, res) => {
         if(end == '') {
             end = '9999/12/31 00:00:00';
         }
-         dbconn.updateHistory(start, end, req.body.sort, req.body.desc, function(result) {
+         dbconn.updateHistory(req.body.username, start, end, req.body.sort, req.body.desc, function(result) {
             
             res.send(result);
          });
     });
 
 app.get('/inProgress', (req, res) => {
-    dbconn.inProgress(function(result) {
+    dbconn.inProgress(req.body.breezecard, function(result) {
+        console.log('progress ' + result[0].count);
         res.send(result[0]);
     });
 });
