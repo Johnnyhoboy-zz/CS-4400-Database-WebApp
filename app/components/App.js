@@ -11,62 +11,159 @@ const server = "http://localhost:8080";
 //
 
 var LogIn = React.createClass({
+	getInitialState : function() {
+		return { userName: '', password: ''};
+	},
     render : function() { return (
     	<div className="LogIn">
     		<center>
 	    	<h1>Log In</h1>
 	    	<form>
 			  Username:<br />
-			  <input type="text" name="user" /><br />
+			  <input type="text" onChange={this.userChange}/><br />
 			  Password:<br />
-			  <input type="text" name="pass" /><br />
+			  <input type="password" onChange={this.passChange}/><br />
 	    	</form>
 	        <br />
-	    	<button>Login</button>
-	    	<button onClick={this.nRegistration}>Register</button>
-	    	<button onClick={this.nPassengerFunctionality}>Go To Passenger Functionality</button>
-	    	<button onClick={this.nAdminFunctionality}>Go To Admin Functionality</button>
+	    	<button onClick={this.login}>Login</button> <br /> <br/>
+	    	<button onClick={this.nRegistration}>Register</button> <br /> <br />
 	    	</center>
     	</div>
     	); 
 	},
+	userChange : function(e) {
+		this.setState({ userName: e.target.value} );
+	},
+	passChange : function(e) {
+		this.setState({ password: e.target.value} );
+	},
+	login: function() {
+		if (this.state.userName == '' || this.state.password == '') {
+			alert('Please fill out all non-optional fields');
+			return;
+		} 
+		fetch(server + '/login', {
+			method: 'post',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify({
+				 "Username": this.state.userName,
+				 "Password": this.state.password,
+			})
+		}).then(function(response) {
+                return response.json();
+            }).then(data => {
+ 				if (data.message == 'loginError') {
+					alert('The login you inputed was incorrect!');
+				} else if (data.message == 'admin') {
+					showAdminFunctionality();
+				} else if (data.message == 'passenger') {
+					showPassengerFunctionality(this.state.userName);
+				}
+            });
+	},
+
     nRegistration : function() { showRegistration(); },
-    nPassengerFunctionality : function() { showPassengerFunctionality(); },
+    nPassengerFunctionality : function() { showPassengerFunctionality(this.state.userName); },
     nAdminFunctionality : function() { showAdminFunctionality(); }
 });
 
 var Registration = React.createClass({
+	getInitialState : function() {
+		return { userName: '', email: '', password: '', confirmPassword: '', breezeCardNum: '', type: "new"};
+	},
     render : function() { return (
     	<div class="Registration">
     		<center>
 	    	<h1>Registration</h1>
 	    	<hr />
 	    	 <form>
-			  Username:
-			  <input type="text" name="user" /><br />
-			  Email:
-			  <input type="text" name="email" /><br />
-			  Password:
-			  <input type="text" name="pass" /><br />
-			  Confirm Password:
-			  <input type="text" name="confirm" /><br />
+			  <label>Username: </label>
+			  <input type="text" onChange={this.userChange}/><br />
+			  <label>Email: </label>
+			  <input type="text" onChange={this.emailChange}/><br />
+			  <label>Password: </label>
+			  <input type="password" onChange={this.passChange}/><br />
+			  <label>Confirm Password: </label>
+			  <input type="password" onChange={this.confirmPassChange} /><br />
+
 			  <h3>Breeze Card</h3>
-			  <input type="radio" name="useBreezeCard" /><label>Use my existing Breeze Card</label><br />
-			  Card Number:
-			  <input type="text" name="cardNumber" /><br />
-			  <input type="radio" name="getNewCard" /><label>Get a new Breeze Card</label><br />
+			  <input type="radio" name="UseBreezeCard" value="old" checked={this.state.type!='new'} onChange={this.typeChange}/><label>Use my existing Breeze Card</label><br />
+			  <label>Card Number: </label>
+			  <input type="text" onChange={this.cardChange}/><br />
+			  <input type="radio" name="UseBreezeCard" value="new" checked={this.state.type=='new'} onChange={this.typeChange}/><label>Get a new Breeze Card</label><br />
 	    	</form>
 	    	<hr />
 	        <br />
 
-	    	<button>Create Account</button>
-	    	<button onClick={this.nLogin}>Back</button> 
+	    	<button onClick={this.register}>Create Account</button>
+	    	<button onClick={this.nLogin}>Back</button>
 	    	</center>
 
     	</div>
-    	); 
+    	);
 	},
+
+	userChange : function(e) {
+		this.setState({ userName: e.target.value} );
+	},
+	emailChange : function(e) {
+		this.setState({ email: e.target.value} );
+	},
+	passChange : function(e) {
+		this.setState({ password: e.target.value} );
+	},
+	confirmPassChange : function(e) {
+		this.setState({ confirmPassword: e.target.value} );
+	},
+	cardChange : function(e) {
+		this.setState({ breezeCardNum: e.target.value} );
+	},
+	typeChange : function(e) {
+		this.setState({ type: e.target.value} );
+	},
+	register : function() {
+		if (this.state.userName == '' || this.state.email == '' || this.state.password == '' || this.state.confirmPassword == '') {
+			alert('Please fill out all non-optional fields');
+			return;
+		} else if (this.state.password.length <=7 || this.state.password != this.state.confirmPassword) {
+			alert('Please make sure your passwords match and is at least 8 chars');
+			return;
+		} else if (this.state.email.includes("@") == false || this.state.email.includes(".") == false) {
+			alert('Please make sure your email is valid');
+			return;
+		} else if (this.state.type != "new" && (this.state.breezeCardNum.length <=15 || this.state.breezeCardNum.length > 16)) {
+			alert('Please input a valid 16 digit Breeze Card');
+			return;
+		}
+		fetch(server + '/registerAccount', {
+			method: 'post',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify({
+				 "Username": this.state.userName,
+				 "Email": this.state.email,
+				 "Password": this.state.password,
+				 "BreezecardNum": this.state.breezeCardNum,
+				 "Type" : this.state.type
+			})
+		}).then(function(response) {
+                return response.json();
+            }).then(data => {
+ 				if (data.message == 'userError') {
+					alert('The username you inputed already exists!');
+				} else if (data.message == 'emailError') {
+					alert('The email you inputed already exists!');
+				} else if (data.message == 'sameBreezecard') {
+					alert('You entered in an existing Breezecard, suspending it, and generating new Breezecard');
+					showPassengerFunctionality(this.state.userName);
+				} else {
+					showPassengerFunctionality(this.state.userName);
+				}
+            });
+	},
+
+	nPassengerFunctionality : function() { showPassengerFunctionality(this.state.userName); },
 	nLogin : function() { showLogIn(); }
+
 });
 
 var chosenCard = '';
@@ -75,12 +172,12 @@ var chosenEnding = '';
 var PassengerFunctionality = React.createClass({
 
 	getInitialState : function() {
-		return { data: [], cardData: [], endData: [],selectedCard: chosenCard, selectedStart: chosenStarting, selectedEnd: chosenEnding, value: '', fare: '', prompt: 'Start Trip', disable: '', count: '', current: {}, currentE: {} }
+		return { data: [], cardData: [], endData: [],selectedCard: chosenCard, selectedStart: chosenStarting, selectedEnd: chosenEnding, value: '', fare: '', prompt: 'Start Trip', count: '', current: {}, currentE: {} }
 	},
 	componentDidMount : function() {
 		fetch(server + "/stationListData")
 		.then(response => response.json())
-		.then(data => {console.log(data); this.setState({ data: data });}
+		.then(data => { this.setState({ data: data });}
 		);
 
 		fetch(server + "/stationListData")
@@ -88,14 +185,20 @@ var PassengerFunctionality = React.createClass({
 		.then(data => this.setState({ endData: data })
 		);
 
-		fetch(server + "/passengerCards")
+		fetch(server + '/passengerCards',
+        {method: 'post',
+         headers: {'Content-Type': 'application/json'},
+         body: JSON.stringify({
+			 "username": this.props.username
+         })
+        })
 		.then(response => response.json())
 		.then(data => this.setState({ cardData: data })
 		);
 
 		fetch(server + "/inProgress")
 		.then(response => response.json())
-		.then(data => {console.log(data); this.setState({ count: data.count }, function () {
+		.then(data => { this.setState({ count: data.count }, function () {
 				if(this.state.count > 0) {
 					this.setState({ prompt: 'In Progress', disable: 'true'} );
 				}
@@ -119,7 +222,7 @@ var PassengerFunctionality = React.createClass({
 
 	    	<div style={{width: "250px"}}>
 	    		<label>Breeze Card </label>
-	    		<Dropdown disabled={this.state.disable} options={cards} onChange={this.selectedCard} value={this.state.selectedCard} />
+	    		<Dropdown options={cards} onChange={this.selectedCard} value={this.state.selectedCard} />
 	    		<a href="#"onClick={this.nManageCards}>Manage Cards</a>
 	    	</div>
 	    	<br/>
@@ -156,33 +259,33 @@ var PassengerFunctionality = React.createClass({
              "BreezecardNum": this.state.selectedCard,
          })
         }).then(response => response.json())
-        .then(data => this.setState({value : data.Value}));
+        .then(data => { console.log(this.state.selectedCard); this.setState({value : data.Value});});
         });
 	},
  
  	selectedStart : function(e) {
 		this.setState({ selectedStart: e.value, current: {'value': e.value, 'label': e.label}}, function() {
-		chosenStarting = this.state.selectedStart;
-		fetch(server + '/getFare',
-        {method: 'post',
-         headers: {'Content-Type': 'application/json'},
-         body: JSON.stringify({
-             "Start": this.state.selectedStart,
-         })
-        }).then(response => response.json())
-        .then(data => { console.log(this.state); 
-        this.setState({fare : data.EnterFare})});
+			chosenStarting = this.state.selectedStart;
+			fetch(server + '/getFare',
+        	{method: 'post',
+         	headers: {'Content-Type': 'application/json'},
+         	body: JSON.stringify({
+             	"Start": this.state.current.value,
+         	})
+        	}).then(response => response.json())
+        	.then(data => { console.log(this.state.value); 
+        	this.setState({fare : data.EnterFare})});
    
-		fetch(server + '/endStationListData',
-        {method: 'post',
-         headers: {'Content-Type': 'application/json'},
-         body: JSON.stringify({
-             "Start": e.value,
-         })
-        }).then(response => response.json())
-        .then(data => this.setState({endData : data, currentE: {}})
-        );
-	    });
+			fetch(server + '/endStationListData',
+        	{method: 'post',
+         	headers: {'Content-Type': 'application/json'},
+         	body: JSON.stringify({
+             	"Start": e.value,
+         	})
+        	}).then(response => response.json())
+        	.then(data => this.setState({endData : data, currentE: {}})
+        	);
+        });
 	},
 
 	selectedEnd : function(e) {
@@ -211,7 +314,16 @@ var PassengerFunctionality = React.createClass({
 				 "BreezecardNum": this.state.selectedCard,
 			})
 		});
-		this.setState({ prompt: 'In Progress', disable: 'true'} );
+		fetch(server + '/getValue',
+        	{method: 'post',
+         	headers: {'Content-Type': 'application/json'},
+         		body: JSON.stringify({
+             	"BreezecardNum": this.state.selectedCard,
+         		})
+        	}).then(response => response.json())
+        	.then(data => { console.log(this.state.selectedCard); this.setState({value : data.Value});}
+        	);
+		this.setState({ prompt: 'In Progress'} );
 	},
 	endTrip : function() {
 		if(this.state.selectedStart == '' && prompt == 'Start Trip') {
@@ -228,16 +340,18 @@ var PassengerFunctionality = React.createClass({
              "desc": this.state.descending
 			})
 		});
-		this.setState({prompt: 'Start Trip', disable: 'false'} );
+
+		this.setState({prompt: 'Start Trip'} );
 	},
-	nTripHistory : function() { showTripHistory(); },
-	nManageCards : function() { showManageCards(); },
+	nTripHistory : function() { console.log(this.props.username); showTripHistory(this.props.username); },
+	nManageCards : function() { showManageCards(this.props.username); },
 	nLogin : function() { showLogIn(); }
 });
 
 const manageOptions = ['Breezecard', 'Value'];
 var ManageCards = React.createClass({
     getInitialState : function() {
+		console.log("props: " + this.props.username);
     	var oColumns = [
 			{
                 Header: '',
@@ -294,9 +408,6 @@ var ManageCards = React.createClass({
 	    	    <br/>
 	    	    <button onClick={this.valueChange}>Add Value</button>
 	    	    <br/>
-	    	    <div style={{width: "250px"}}>
-                <Dropdown items={this.state.data} />
-                </div>
                 <br/>
 		    	<button onClick={this.nPassengerFunctionality}>Back To Passenger Functionality</button>
 	    	</div>
@@ -317,10 +428,17 @@ var ManageCards = React.createClass({
 				 "BreezecardNum": this.state.selectedRow.BreezecardNum
 			})
 		});
-		fetch(server + "/passengerCardData")
-		.then(response => response.json())
-		.then(data => this.setState({ data: data })
-		);
+		fetch(server + '/passengerCardData',
+        {method: 'post',
+         headers: {'Content-Type': 'application/json'},
+         body: JSON.stringify({
+			 "username": this.props.username,
+             "sort": this.state.sort,
+             "desc": this.state.descending
+         })
+        }).then(function(response) {
+            return response.json();
+        }).then(data => this.setState({data : data}));
 		}
 	},
 	update : function() {
@@ -328,6 +446,7 @@ var ManageCards = React.createClass({
         {method: 'post',
          headers: {'Content-Type': 'application/json'},
          body: JSON.stringify({
+			 "username": this.props.username,
              "sort": this.state.sort,
              "desc": this.state.descending
          })
@@ -369,11 +488,7 @@ var ManageCards = React.createClass({
 			alert('Please fill out the card field');
 			return;
 		}
-		if(this.state.credit == '') {
-			alert('Must have credit card to add value');
-			return;
-		}
-		if(this.state.card.length != 16 || this.state.credit.length != 16) {
+		if(this.state.card.length != 16) {
 			alert('Cards must have 16 digits');
 			return;
 		}
@@ -381,12 +496,27 @@ var ManageCards = React.createClass({
 			method: 'post',
 			headers: {'Content-Type': 'application/json'},
 			body: JSON.stringify({
+				"username": this.props.username,
 				 "BreezecardNum": this.state.card
 			})
 		});
 	},
     
     valueChange: function() {
+    	if (!this.state.selectedRow) {
+            alert('You need to choose a card before adding value.');
+        } 
+    	if(this.state.value < 0 || this.state.value > 1000) {
+    		alert('Balance cannot be negative or exceed 1000')
+    	}
+    	if(this.state.credit == '') {
+			alert('Must have credit card to add value');
+			return;
+		}
+		if(this.state.credit.length != 16) {
+			alert('Cards must have 16 digits');
+			return;
+		}
 		fetch(server + '/addValue', {
 			method: 'post',
 			headers: {'Content-Type': 'application/json'},
@@ -397,7 +527,7 @@ var ManageCards = React.createClass({
 		});
 	},
 
-	nPassengerFunctionality : function() { showPassengerFunctionality(); }
+	nPassengerFunctionality : function() { showPassengerFunctionality(this.props.username); }
 });
 
 var TripHistory = React.createClass({
@@ -464,6 +594,7 @@ var TripHistory = React.createClass({
         {method: 'post',
          headers: {'Content-Type': 'application/json'},
          body: JSON.stringify({
+			 "Username": this.props.username,
              "Start": this.state.start,
              "End": this.state.end,
              "sort": this.state.sort,
@@ -476,26 +607,30 @@ var TripHistory = React.createClass({
     resetData: function() {
         this.setState({ columns: oColumns, data: [], start: '', end: ''});
     },
-	nPassengerFunctionality : function() { showPassengerFunctionality(); }
+	nPassengerFunctionality : function() { showPassengerFunctionality(this.props.username); }
 });
+
+
 
 var AdminFunctionality = React.createClass({
     render : function() { return (
-    	<div class="AdminFunctionality">
+        <div className="AdminFunctionality"> 
+		<center>
 	    	<p>Admin Functionality</p>
-	    	<button onClick={this.nBreezecardManagement}>Go To Breezecard Management</button>
-	    	<button onClick={this.nStationManagement}>Go To Station Management</button>
-	    	<button onClick={this.nPassengerFlowReport}>Go To PassengerFlowReport</button>
-	    	<button onClick={this.nSuspendedCards}>Go To Suspended Cards</button>
-	    	<button onClick={this.nLogin}>Back</button>
+	    	<button onClick={this.nBreezecardManagement}>Go To Breezecard Management</button> <br /> <br />
+	    	<button onClick={this.nStationManagement}>Go To Station Management</button> <br /> <br />
+	    	<button onClick={this.nPassengerFlowReport}>Go To PassengerFlowReport</button> <br /> <br />
+	    	<button onClick={this.nSuspendedCards}>Go To Suspended Cards</button> <br /> <br />
+	    	<button onClick={this.nLogin}>Back</button> <br />
+		</center>
     	</div>
-    	);
-	},
-	nBreezecardManagement : function() { showBreezecardManagement(); },
-	nStationManagement : function() { showStationManagement(); },
-	nPassengerFlowReport : function() { showPassengerFlowReport(); },
-	nSuspendedCards : function() { showSuspendedCards(); },
-	nLogin : function() { showLogIn(); }
+        );
+    },
+    nBreezecardManagement : function() { showBreezecardManagement(); },
+    nStationManagement : function() { showStationManagement(); },
+    nPassengerFlowReport : function() { showPassengerFlowReport(); },
+    nSuspendedCards : function() { showSuspendedCards(); },
+    nLogin : function() { showLogIn(); }
 });
 
 const breezeCardManagementOptions = ['Card #', 'Value', 'Owner'];
@@ -516,13 +651,14 @@ var BreezecardManagement = React.createClass({
                 maxWidth: 40
             },
             { Header: 'Card #', accessor: 'BreezecardNum' },
-            { Header: 'Value', accessor: 'Value' },
+
+            { Header: 'Value ($)', accessor: 'Value' },
             { Header: 'Owner', accessor: 'BelongsTo' }
         ];
 
-        return { columns: oColumns, data: [], owner: '', suspended: '', cardNumber: '',
+        return { columns: oColumns, data: [], owner: '', suspended: false, cardNumber: '',
                  valueLow: '', valueHigh: '', setValue: '', transfer: '', sort: "BreezecardNum",
-                 selected: breezeCardManagementOptions[0], descending: ''};
+                 selected: breezeCardManagementOptions[0], descending: '', descendingCheck: false, selectedRow: null};
     },
     selectRow : function(row) {
         this.setState( {selectedRow: row.original} );
@@ -548,30 +684,30 @@ var BreezecardManagement = React.createClass({
                     Owner:
                 </text>
                 <span style={style5}>
-                    <input type="text" name="owner_textbox" onChange={this.ownerChange}/>
+                    <input type="text" name="owner_textbox" onChange={this.ownerChange} value={this.state.owner}/>
                 </span>
-                <input type="checkbox" name="suspended_checkbox" id="suspended_checkbox" onClick={this.suspendedChange} />
+                <input type="checkbox" name="suspended_checkbox" id="suspended_checkbox" onClick={this.suspendedChange} checked={this.state.suspended}/>
                 <label htmlFor="suspended_checkbox"> Show Suspended Cards </label>
             </p>
             <p>
                 <text style={style5}>
                     Card Number:
                  </text>
-                <input type="text" name="card_number_textbox" onChange={this.cardNumberChange} />
+                <input type="text" name="card_number_textbox" onChange={this.cardNumberChange} value={this.state.cardNumber}/>
                 <span style={style40}>
-                    <button> Reset </button>
+                    <button onClick={this.resetFields}> Reset </button>
                 </span>
             </p>
             <span style={style5}>
                 <text style={style5}>
                     Value between:
                 </text>
-                <input type="text" name="value_start_textbox" size='6' onChange={this.valueLowChange}/>
+                <input type="text" name="value_start_textbox" size='6' onChange={this.valueLowChange} value={this.state.valueLow}/>
             </span>
             <text style={style5}>
                 and:
             </text>
-            <input type="text" name="value_end_textbox" size='6' onChange={this.valueHighChange}/>
+            <input type="text" name="value_end_textbox" size='6' onChange={this.valueHighChange} value={this.state.valueHigh}/>
             <span style={style40}>
                     <button onClick={this.updateData}> Update Filter </button>
             </span>
@@ -580,11 +716,11 @@ var BreezecardManagement = React.createClass({
                 Order by:
             </text>
             <div style={{width: "250px"}}>
-                <Dropdown options={breezeCardManagementOptions} onChange={this.sortChange} value={defaultOption}/>
+                <Dropdown options={breezeCardManagementOptions} onChange={this.sortChange} value={defaultOption} />
                 <text style={style5}>
                     Sort Descending?
                 </text>
-                <input type="checkbox" name="descending_checkbox" id="descending_checkbox" onClick={this.descendingChange} />
+                <input type="checkbox" name="descending_checkbox" id="descending_checkbox" onClick={this.descendingChange} checked={this.state.descendingCheck} />
             </div>
             <p></p>
             <ReactTable
@@ -595,17 +731,16 @@ var BreezecardManagement = React.createClass({
                     defaultSortMethod={undefined}/>
             <p>
                 <span style={style5}>
-                    <input type="text" name="card_value_textbox" onChange={this.setValueChange}/>
+                    <input type="text" name="card_value_textbox" onChange={this.setValueChange} value={this.state.setValue}/>
                 </span>
-                <button>Set Value of Selected Card</button>
+                <button onClick={this.changeCardValue}>Set Value of Selected Card</button>
             </p>
             <p>
                 <span style={style5}>
-                    <input type="text" name="transfer_card_textbox" onChange={this.transferChange}/>
+                    <input type="text" name="transfer_card_textbox" onChange={this.transferChange} value={this.state.transfer}/>
                 </span>
-                <button>Transfer Selected Card</button>
+                <button onClick={this.transferCard}>Transfer Selected Card</button>
             </p>
-
 
             <button onClick={this.nAdminFunctionalitya}>Back</button>
         </div>
@@ -633,9 +768,9 @@ var BreezecardManagement = React.createClass({
     },
     descendingChange: function(e) {
         if (e.target.checked) {
-            this.setState({descending : 'DESC'});
+            this.setState({descending : 'DESC', descendingCheck: true});
         } else {
-            this.setState({descending : ''});
+            this.setState({descending : '', descendingCheck: false});
         }
     },
     cardNumberChange: function(e) {
@@ -670,43 +805,154 @@ var BreezecardManagement = React.createClass({
             return response.json();
         }).then(data => this.setState({data : data}));
     },
+    changeCardValue: function() {
+        if (!this.state.selectedRow) {
+            alert('You need to select a breezecard to change the value!');
+        } else {
+            fetch(server + '/adminBreezeCardValueChange',
+                {method: 'post',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    "breezecardNumber": this.state.selectedRow.BreezecardNum,
+                    "cardValue": this.state.setValue
+                })
+            }).then(function(response) {
+                return response.json();
+            }).then(data => {
+                if (data.message == 'error') {
+                    alert('The field for breezecard value is not a number!');
+                }
+                this.updateData();
+            });
+        }
+    },
+    transferCard: function() {
+        fetch(server + '/adminBreezecardTransfer',
+            {method: 'post',
+             headers: {'Content-Type': 'application/json'},
+             body: JSON.stringify({
+                "cardNumber": this.state.selectedRow.BreezecardNum,
+                "originalOwner": this.state.selectedRow.BelongsTo,
+                "newOwner": this.state.transfer
+               })
+             }).then(function(response) {
+                return response.json();
+             }).then(data => {
+                if (data.message == 'error') {
+                    alert('The entered username is not a passenger!');
+                }
+                this.updateData();
+             });
+    },
+    resetFields: function() {
+        this.setState({owner: '', suspended: false, cardNumber: '', valueLow: '', valueHigh: '',
+                       sort: "BreezecardNum", descending: '', descendingCheck: false, selectedRow: null,
+                       selected: breezeCardManagementOptions[0], setValue: '', transfer: ''});
+    },
     nAdminFunctionalitya : function() { showAdminFunctionality(); }
 });
-
 
 
 var SuspendedCards = React.createClass({
 	getInitialState : function() {
 			var oColumns = [
-				{ Header: 'Card #', accessor: 'cardNumber' },
-				{ Header: 'New Owner', accessor: 'newOwner' },
-				{ Header: 'Date Suspended', accessor: 'dateSuspended' },
-				{ Header: 'Previous Owner', accessor: 'prevOwner'}
+				{
+					Header: '',
+						accessor: 'editButton',
+						Cell: (row) => (
+							<div>
+								<input type="radio" name="ownertype" value="select"
+										onClick={() => this.selectRow(row)}/>
+							</div>
+						),
+						maxWidth: 40
+				},
+				{ Header: 'Card #', accessor: 'BreezecardNum' },
+				{ Header: 'New Owner', accessor: 'Username'},
+				{ Header: 'Date Suspended', accessor: 'DateTime' },
+				{ Header: 'Previous Owner', accessor: 'BelongsTo'}
 			];
-			var oData = [
-				{ cardNumber: '1446 2121 0808 1229', newOwner: 'John H', dateSuspended: '11-15-2017 4:20pm', prevOwner: 'Alex C' }, 
-				{ cardNumber: '1581 9910 0010 4404', newOwner: 'Ryan A', dateSuspended: '11-20-2017 4:20am', prevOwner: 'Sam C' }
-			];
-			return { columns: oColumns, data: oData };
+			return { columns: oColumns, data: [], selectedRow: null };
 		},
-	  	render : function() { 
+
+		selectRow : function(row) {
+			this.setState( {selectedRow: row.original} );
+		},
+
+		componentDidMount : function() {
+			fetch(server + "/suspendedCardsData")
+			.then(response => response.json())
+			.then(data => this.setState({ data: data })
+			);
+		},
+		refreshState : function() {
+				fetch(server + "/suspendedCardsData")
+				.then(response => response.json())
+				.then(data => this.setState({ data: data })
+				);
+		},
+	  	render : function() {
 	  		return (
-		    	<div class="StationManagement">
+		    	<div class="SuspensedCardManagement">
 			    	<h1>Suspended Cards</h1>
 			    	<ReactTable
 					    data={this.state.data}
 					    columns={this.state.columns}
-					    defaultPageSize={10}
+					    sortable={false}
 					  /><br />
 					 <center>
-			    	<button>Assign Selected Card to New Owner</button><br /><br />
-			    	<button>Assign Selected Card to Previous Owner</button><br /><br />
+			    	<button onClick={this.changeNewOwner}>Assign Selected Card to New Owner</button><br /><br />
+			    	<button onClick={this.changePrevOwner}>Assign Selected Card to Previous Owner</button><br /><br />
 			    	<br />
-			    	<button onClick={this.nAdminFunctionality}>Back To Admin Functionality</button>
-		    		</center>
+			    	<p> Assigning the card to an owner will unlock all<br />
+						accounts conflicted on the same Breeze Card </p> <br />
+					<button onClick={this.nAdminFunctionality}>Back To Admin</button>
+					</center>
 		    	</div>
 	    	);
 		},
+	changeNewOwner : function() {
+		if (!this.state.selectedRow) {
+			alert('You need to choose a Breezecard before you can assign it.');
+		} else {
+
+			var newUser = this.state.selectedRow.Username;
+			var oldUser = this.state.selectedRow.BelongsTo;
+			var breezeNum = this.state.selectedRow.BreezecardNum;
+			fetch(server + '/updateOwner', {
+				method: 'post',
+				headers: {'Content-Type': 'application/json'},
+				body: JSON.stringify({
+					"Username": newUser,
+					"otherUser" : oldUser,
+					"BreezecardNum": breezeNum
+				})
+			}).then(function(response) {
+				return response.json();
+			}).then(data => this.refreshState() );
+		}
+	},
+	changePrevOwner : function() {
+		if (!this.state.selectedRow) {
+			alert('You need to choose a Breezecard before you can assign it.');
+		} else {
+
+			var oldUser = this.state.selectedRow.BelongsTo;
+			var newUser = this.state.selectedRow.Username;
+			var breezeNum = this.state.selectedRow.BreezecardNum;
+			fetch(server + '/updateOwner', {
+				method: 'post',
+				headers: {'Content-Type': 'application/json'},
+				body: JSON.stringify({
+					"Username": oldUser,
+					"otherUser" : newUser,
+					"BreezecardNum": breezeNum
+				})
+			}).then(function(response) {
+				return response.json();
+			}).then(data => this.refreshState() );
+		}
+	},
 	nAdminFunctionality : function() { showAdminFunctionality(); }
 });
 
@@ -721,7 +967,7 @@ var PassengerFlowReport = React.createClass({
             { Header: 'Revenue', accessor: 'revenue'}
         ];
         return { columns: oColumns, data: [], descending: '', descendingCheck: false, selected: passengerFlowOptions[0], timeStart: '',
-                 timeEnd: '', sort: 'stationName'};
+                 timeEnd: '', sort: 'stationName', warning_text: ''};
     },
     render : function() {
         const style5 = {
@@ -745,7 +991,7 @@ var PassengerFlowReport = React.createClass({
                     <input type="datetime-local" name="start_time_textbox" onChange={this.startChange} value={this.state.timeStart}/>
                 </span>
                 <span style={style5}>
-                    <button onClick={this.updateData}>Update</button>
+                    <button onClick={this.updatePress}>Update</button>
                 </span>
                 <button onClick={this.resetData}>Reset</button>
             </p>
@@ -755,6 +1001,11 @@ var PassengerFlowReport = React.createClass({
                         End Time
                     </text>
                     <input type="datetime-local" name="end_time_textbook" onChange={this.endChange} value={this.state.timeEnd}/>
+                    <span style={{paddingLeft: "15px"}}>
+                        <text id = 'text_warning' style = {{color: 'red'}}>
+                            {this.state.warning_text}
+                        </text>
+                    </span>
                 </span>
             </p>
              <div style={{width: "250px"}}>
@@ -806,6 +1057,20 @@ var PassengerFlowReport = React.createClass({
         this.setState({selected: e});
 
     },
+    updatePress: function() {
+        if (this.state.timeStart == '') {
+            if (this.state.timeEnd == '') {
+                this.setState({warning_text: "Start and end time are either invalid or blank. Queried with no time restriction." });
+            } else {
+                this.setState({warning_text: "Start time is either invalid or blank. Queried with no start time restriction." });
+            }
+        } else if (this.state.timeEnd == '') {
+            this.setState({warning_text: "End time is either invalid or blank. Queried with no end time restriction." });
+        } else {
+            this.setState({warning_text : ''});
+        }
+        this.updateData();
+    },
     updateData : function() {
         fetch(server + '/passengerFlowData',
         {method: 'post',
@@ -821,218 +1086,258 @@ var PassengerFlowReport = React.createClass({
         }).then(data => this.setState({data : data}));
     },
     resetData: function() {
-        this.setState({ columns: oColumns, data: [], descending: '', descendingCheck: false, selected: passengerFlowOptions[0], timeStart: '',
-                 timeEnd: '', sort: 'stationName'});
+        this.setState({data: [], descending: '', descendingCheck: false, selected: passengerFlowOptions[0], timeStart: '',
+                 timeEnd: '', sort: 'stationName', warning_text: ''}, function() {
+                        this.updateData();
+                 });
     },
     nAdminFunctionality : function() { showAdminFunctionality(); }
 });
 
+const stationManagementSortOptions = ['Station Name', 'Stop ID', 'Fare', 'Status'];
 var StationManagement = React.createClass({
-	getInitialState : function() {
-		var oColumns = [
-			{
+    getInitialState : function() {
+        var oColumns = [
+            {
                 Header: '',
                 accessor: 'editButton',
                 Cell: (row) => (
                     <div>
-						<input type="radio" name="stationtype" value="select" 
-								onClick={() => this.selectRow(row)}/>
-					</div>
+                        <input type="radio" name="stationtype" value="select"
+                                onClick={() => this.selectRow(row)}/>
+                    </div>
                 ),
                 maxWidth: 40
             },
-			{ Header: 'Station Name', accessor: 'Name' },
-			{ Header: 'Stop ID', accessor: 'StopID' },
-			{ Header: 'Fare', accessor: 'EnterFare' },
-			{ Header: 'Status', accessor: 'ClosedStatus'}
-		];
-		return { columns: oColumns, data: [], selectedRow: null };
+            { Header: 'Station Name', accessor: 'Name' },
+            { Header: 'Stop ID', accessor: 'StopID' },
+            { Header: 'Fare', accessor: 'EnterFare' },
+            { Header: 'Status', accessor: 'ClosedStatus'}
+        ];
+		return { columns: oColumns, data: [], selectedRow: null, descending: '',
+			sort: 'Name' };
+    },
+    selectRow : function(row) {
+        this.setState( {selectedRow: row.original} );
+    },
+    componentDidMount : function() {
+		fetch(server + '/stationManagementData', {
+		 method: 'post',
+         headers: {'Content-Type': 'application/json'},
+         body: JSON.stringify({
+             "sort": this.state.sort,
+             "desc": this.state.descending
+         })
+        }).then(function(response) {
+            return response.json();
+        }).then(data => this.setState({data : data}));
+    },
+    render : function() {
+        return (
+            <div class="StationManagement">
+                <h1>Station Listing</h1>
+				<div style={{width: "250px"}}>
+				<p>Sort by:</p>
+				<Dropdown options={stationManagementSortOptions} 
+						onChange={this.sortChange} 
+						value={this.state.sort}/>
+                <text>Sort Descending?</text>
+				<input type="checkbox" name="descending_checkbox" id="descending_checkbox" 
+						onClick={this.descendingChange} />
+				<br /><button onClick={this.updateSort}>Update Sort</button>
+            </div>
+                <ReactTable
+                    data={this.state.data}
+                    columns={this.state.columns}
+                    sortable={false}
+                  />
+                <button onClick={this.nViewStation}>View Station</button>
+                <button onClick={this.nCreateStation}>Create Station</button>
+                <br />
+                <button onClick={this.nAdminFunctionality}>Back To Admin Functionality</button>
+            </div>
+        );
 	},
-	selectRow : function(row) {
-		this.setState( {selectedRow: row.original} );
+	updateSort : function() {
+		this.componentDidMount();
 	},
-	componentDidMount : function() {
-		fetch(server + "/stationManagementData")
-		.then(response => response.json())
-		.then(data => this.setState({ data: data })
-		);
+	sortChange: function(e) {
+		['Station Name', 'Stop ID', 'Fare', 'Status'];
+		if (e.value == 'Station Name')
+			this.setState({sort: 'Name'});
+		else if (e.value == 'Stop ID')
+			this.setState({sort: 'StopID'});
+		else if (e.value == 'Fare')
+			this.setState({sort: 'EnterFare'});
+		else if (e.value == 'Status')
+			this.setState({sort: 'ClosedStatus'})
 	},
-  	render : function() {
-  		return (
-	    	<div class="StationManagement">
-		    	<h1>Station Listing</h1>
-		    	<ReactTable
-				    data={this.state.data}
-				    columns={this.state.columns}
-					sortable={false}
-				  />	
-		    	<button onClick={this.nViewStation}>View Station</button>
-		    	<button onClick={this.nCreateStation}>Create Station</button>
-		    	<br />
-		    	<button onClick={this.nAdminFunctionality}>Back To Admin Functionality</button>
-	    	</div>
-    	);
-	},
-	nViewStation : function() { 
-		if (!this.state.selectedRow) {
-			alert('You need to choose a station before you can view it.');
-		} else {
-			showViewStation(this.state.selectedRow.StopID); 
-		}
-	},
-	nCreateStation : function() { showCreateStation(); },
-	nAdminFunctionality : function() { showAdminFunctionality(); }
+	descendingChange: function(e) {
+        if (e.target.checked) {
+            this.setState({descending : 'DESC'});
+        } else {
+            this.setState({descending : ''});
+        }
+    },
+    nViewStation : function() {
+        if (!this.state.selectedRow) {
+            alert('You need to choose a station before you can view it.');
+        } else {
+            showViewStation(this.state.selectedRow.StopID);
+        }
+    },
+    nCreateStation : function() { showCreateStation(); },
+    nAdminFunctionality : function() { showAdminFunctionality(); }
 });
 
 var ViewStation = React.createClass({
-	getInitialState : function() {
-		return { name: '', id: '', fare: -1, open: 'closed', intersection: '', newFare: '' }
-	},
+    getInitialState : function() {
+        return { name: '', id: '', fare: -1, open: 'closed', intersection: '', newFare: '' }
+    },
     render : function() { return (
-    	<div class="ViewStation">
-	    	<h1>{this.state.name} (id {this.state.id})</h1><br />
-	    	<p>Current Fare: ${this.state.fare}</p>
-	    	<label>$</label><input type="text" onChange={this.fareChange}/>
-	    	<button onClick={this.updateFare}>Update Fare</button>
-	    	<p>Nearest Intersection: {this.state.intersection}</p>
-	    	<p>Should the station be open or closed?</p>
-			<form>
-				<input type="radio" name="open" value="open" checked={this.state.open=='open'} 
-						onChange={this.openChange} />
-				<label>Open</label><br />
-				<input type="radio" name="open" value="closed" checked={this.state.open=='closed'} 
-						onChange={this.openChange} />
-				<label>Closed</label><br />
-			</form>
-			<button onClick={this.updateOpen}>Update</button>
-	    	<br /><br /><button onClick={this.nStationManagement}>Back to Station Management</button>
-    	</div>
-    	); 
-	},
-	componentDidMount : function() {
-		this.refreshState();
-	},
-	refreshState : function() {
-		console.log('refreshing state');
-		fetch(server + '/viewStationData', {
-			method: 'post',
-			headers: {'Content-Type': 'application/json'},
-			body: JSON.stringify({
-				 "StopID": this.props.initialId
-			})
-		}).then(function(res){ return res.json(); })
-		.then(data => this.setState(
-			{ 
-					name: data.Name, id: data.StopID, fare: data.EnterFare,
-					open: (data.ClosedStatus) ? "closed" : "open",
-					intersection: (data.intersection != null) ? data.intersection
-						: 'Not available for trains'
-			}));
-	},
-	fareChange : function(e) {
-		this.setState({ newFare: e.target.value} );
-	},
-	openChange : function(e) {
-		this.setState({ open: e.target.value });
-	},
-	updateOpen : function() {
-		fetch(server + '/updateOpen', {
-			method: 'post',
-			headers: {'Content-Type': 'application/json'},
-			body: JSON.stringify({
-				 "StopID": this.state.id,
-				 "open": this.state.open
-			})
-		});
-	},
-	updateFare : function() {
-		if (this.state.newFare < 0 || this.state.newFare > 50) {
-			alert('Fares must be between $0.00 and $50.00');
-		} else {
-			fetch(server + '/updateFare', {
-				method: 'post',
-				headers: {'Content-Type': 'application/json'},
-				body: JSON.stringify({
-					"StopID": this.state.id,
-					"EnterFare": this.state.newFare
-				})
-			}).then(function(response) {
-				return response.json();
-			}).then(data => this.refreshState() );
-		}
-	},
-	nStationManagement : function() { showStationManagement(); }
+        <div class="ViewStation">
+            <h1>{this.state.name} (id {this.state.id})</h1><br />
+            <p>Current Fare: ${this.state.fare}</p>
+            <label>$</label><input type="text" onChange={this.fareChange}/>
+            <button onClick={this.updateFare}>Update Fare</button>
+            <p>Nearest Intersection: {this.state.intersection}</p>
+            <p>Should the station be open or closed?</p>
+            <form>
+                <input type="radio" name="open" value="open" checked={this.state.open=='open'}
+                        onChange={this.openChange} />
+                <label>Open</label><br />
+                <input type="radio" name="open" value="closed" checked={this.state.open=='closed'}
+                        onChange={this.openChange} />
+                <label>Closed</label><br />
+            </form>
+            <button onClick={this.updateOpen}>Update</button>
+            <br /><br /><button onClick={this.nStationManagement}>Back to Station Management</button>
+        </div>
+        );
+    },
+    componentDidMount : function() {
+        this.refreshState();
+    },
+    refreshState : function() {
+        fetch(server + '/viewStationData', {
+            method: 'post',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                 "StopID": this.props.initialId
+            })
+        }).then(function(res){ return res.json(); })
+        .then(data => this.setState(
+            {
+                    name: data.Name, id: data.StopID, fare: data.EnterFare,
+                    open: (data.ClosedStatus) ? "closed" : "open",
+                    intersection: (data.intersection != null) ? data.intersection
+                        : 'Not available for trains'
+            }));
+    },
+    fareChange : function(e) {
+        this.setState({ newFare: e.target.value} );
+    },
+    openChange : function(e) {
+        this.setState({ open: e.target.value });
+    },
+    updateOpen : function() {
+        fetch(server + '/updateOpen', {
+            method: 'post',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                 "StopID": this.state.id,
+                 "open": this.state.open
+            })
+        });
+    },
+    updateFare : function() {
+        if (this.state.newFare < 0 || this.state.newFare > 50) {
+            alert('Fares must be between $0.00 and $50.00');
+        } else {
+            fetch(server + '/updateFare', {
+                method: 'post',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    "StopID": this.state.id,
+                    "EnterFare": this.state.newFare
+                })
+            }).then(function(response) {
+                return response.json();
+            }).then(data => this.refreshState() );
+        }
+    },
+    nStationManagement : function() { showStationManagement(); }
 });
 
 var CreateStation = React.createClass({
-	getInitialState : function() {
-		return { name: '', id: '', fare: 0.0, type: "train", open: "closed", nearest: '', message: "" };
-	},
-	render : function() { return (
-    	<div class="CreateStation">
-	    	<div><label>Station Name   </label><input type="text" onChange={this.nameChange} /></div>
-	    	<div><label>Stop ID   </label><input type="text" onChange={this.idChange} /></div>
-	    	<div><label>Entry Fare   $</label><input type="text" onChange={this.fareChange} /></div><br />
-	    	<p>Station Type</p>
-	    	<form>
-	    		<input type="radio" name="stationtype" value="bus" checked={this.state.type!='train'} onChange={this.typeChange} />
-				<label>Bus</label><br />
-	    		<label>Nearest Intersection (Optional)</label>
-				<input type="text" onChange={this.nearestChange}/><br />
-	    		<input type="radio" name="stationtype" value="train" checked={this.state.type=='train'} onChange={this.typeChange} />
-				<label>Train</label><br />
-				<p>Should the station be open or closed?</p>
-				<input type="radio" name="open" value="open" checked={this.state.open!='closed'} onChange={this.openChange} />
-				<label>Open</label><br />
-	    		<input type="radio" name="open" value="closed" checked={this.state.open=='closed'} onChange={this.openChange} />
-				<label>Closed</label>
-	    	</form>
-			<br />
-	    	<button onClick={this.createStation}>Create Station</button>
-			<p>{this.state.message}</p>
-	    	<br /><br /><button onClick={this.nStationManagement}>Back to Station Management</button>
-    	</div>
-    	); 
-	},
-	nameChange : function(e) {
-		this.setState({ name: e.target.value} );
-	},
-	idChange : function(e) {
-		this.setState({ id: e.target.value} );
-	},
-	fareChange : function(e) {
-		this.setState({ fare: e.target.value } );
-	},
-	typeChange : function(e) {
-		this.setState({ type: e.target.value} );
-	},
-	openChange : function(e) {
-		this.setState({ open: e.target.value });
-	},
-	nearestChange : function(e) {
-		this.setState( { nearest: e.target.value })
-	},
-	createStation : function() {
-		if (this.state.id == '' || this.state.name == '' || this.state.fare == '') {
-			alert('Please fill out all non-optional fields');
-			return;
-		}
-		if (this.state.message != '')
-			this.setState( { message: '' });
-		fetch(server + '/createStation', {
-			method: 'post',
-			headers: {'Content-Type': 'application/json'},
-			body: JSON.stringify({
-				 "StopID": this.state.id,
-				 "Name": this.state.name,
-				 "EnterFare": this.state.fare,
-				 "ClosedStatus": this.state.open,
-				 "IsTrain": this.state.type,
-				 "Intersection": this.state.nearest
-			})
-		}).then(function(res){ return res.json(); }).then(function(data){ alert( data.message ) });
-	},
-	nStationManagement : function() { showStationManagement(); }
+    getInitialState : function() {
+        return { name: '', id: '', fare: 0.0, type: "train", open: "closed", nearest: '', message: "" };
+    },
+    render : function() { return (
+        <div class="CreateStation">
+            <div><label>Station Name   </label><input type="text" onChange={this.nameChange} /></div>
+            <div><label>Stop ID   </label><input type="text" onChange={this.idChange} /></div>
+            <div><label>Entry Fare   $</label><input type="text" onChange={this.fareChange} /></div><br />
+            <p>Station Type</p>
+            <form>
+                <input type="radio" name="stationtype" value="bus" checked={this.state.type!='train'} onChange={this.typeChange} />
+                <label>Bus</label><br />
+                <label>Nearest Intersection (Optional)</label>
+                <input type="text" onChange={this.nearestChange}/><br />
+                <input type="radio" name="stationtype" value="train" checked={this.state.type=='train'} onChange={this.typeChange} />
+                <label>Train</label><br />
+                <p>Should the station be open or closed?</p>
+                <input type="radio" name="open" value="open" checked={this.state.open!='closed'} onChange={this.openChange} />
+                <label>Open</label><br />
+                <input type="radio" name="open" value="closed" checked={this.state.open=='closed'} onChange={this.openChange} />
+                <label>Closed</label>
+            </form>
+            <br />
+            <button onClick={this.createStation}>Create Station</button>
+            <p>{this.state.message}</p>
+            <br /><br /><button onClick={this.nStationManagement}>Back to Station Management</button>
+        </div>
+        );
+    },
+    nameChange : function(e) {
+        this.setState({ name: e.target.value} );
+    },
+    idChange : function(e) {
+        this.setState({ id: e.target.value} );
+    },
+    fareChange : function(e) {
+        this.setState({ fare: e.target.value } );
+    },
+    typeChange : function(e) {
+        this.setState({ type: e.target.value} );
+    },
+    openChange : function(e) {
+        this.setState({ open: e.target.value });
+    },
+    nearestChange : function(e) {
+        this.setState( { nearest: e.target.value })
+    },
+    createStation : function() {
+        if (this.state.id == '' || this.state.name == '' || this.state.fare == '') {
+            alert('Please fill out all non-optional fields');
+            return;
+        }
+        if (this.state.message != '')
+            this.setState( { message: '' });
+        fetch(server + '/createStation', {
+            method: 'post',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                 "StopID": this.state.id,
+                 "Name": this.state.name,
+                 "EnterFare": this.state.fare,
+                 "ClosedStatus": this.state.open,
+                 "IsTrain": this.state.type,
+                 "Intersection": this.state.nearest
+            })
+        }).then(function(res){ return res.json(); }).then(function(data){ alert( data.message ) });
+    },
+    nStationManagement : function() { showStationManagement(); }
 });
 
 //
@@ -1046,52 +1351,55 @@ var CreateStation = React.createClass({
 //
 
 function showLogIn() {
-	ReactDOM.render(<LogIn />, document.getElementById('root'));
+    ReactDOM.render(<LogIn />, document.getElementById('root'));
 }
 
 function showRegistration() {
-	ReactDOM.render(<Registration />, document.getElementById('root'));
+    ReactDOM.render(<Registration />, document.getElementById('root'));
 }
 
-function showPassengerFunctionality() {
-	ReactDOM.render(<PassengerFunctionality />, document.getElementById('root'));
+function showPassengerFunctionality(username) {
+    ReactDOM.render(<PassengerFunctionality 
+						username={username}/>, document.getElementById('root'));
 }
 
-function showManageCards() {
-	ReactDOM.render(<ManageCards />, document.getElementById('root'));
+function showManageCards(username) {
+    ReactDOM.render(<ManageCards 
+						username={username}/>, document.getElementById('root'));
 }
 
-function showTripHistory() {
-	ReactDOM.render(<TripHistory />, document.getElementById('root'));
+function showTripHistory(username) {
+    ReactDOM.render(<TripHistory 
+						username={username}/>, document.getElementById('root'));
 }
 
 function showViewStation(stationId) {
-	ReactDOM.render(<ViewStation
-						initialId={stationId} />, document.getElementById('root'));
+    ReactDOM.render(<ViewStation
+                        initialId={stationId} />, document.getElementById('root'));
 }
 
 function showCreateStation() {
-	ReactDOM.render(<CreateStation />, document.getElementById('root'));
+    ReactDOM.render(<CreateStation />, document.getElementById('root'));
 }
 
 function showAdminFunctionality() {
-	ReactDOM.render(<AdminFunctionality />, document.getElementById('root'));
+    ReactDOM.render(<AdminFunctionality />, document.getElementById('root'));
 }
 
 function showPassengerFlowReport() {
-	ReactDOM.render(<PassengerFlowReport />, document.getElementById('root'));
+    ReactDOM.render(<PassengerFlowReport />, document.getElementById('root'));
 }
 
 function showSuspendedCards() {
-	ReactDOM.render(<SuspendedCards />, document.getElementById('root'));
+    ReactDOM.render(<SuspendedCards />, document.getElementById('root'));
 }
 
 function showBreezecardManagement() {
-	ReactDOM.render(<BreezecardManagement />, document.getElementById('root'));
+    ReactDOM.render(<BreezecardManagement />, document.getElementById('root'));
 }
 
 function showStationManagement() {
-	ReactDOM.render(<StationManagement />, document.getElementById('root'));
+    ReactDOM.render(<StationManagement />, document.getElementById('root'));
 }
 
 showLogIn();
