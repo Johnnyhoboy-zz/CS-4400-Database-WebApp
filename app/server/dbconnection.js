@@ -215,6 +215,17 @@ var updateOwner = function(Username, OldName, BreezeCardNum, callback) {
     });
 };
 
+var checkBreezecardOwnership = function(Username, callback) {
+    var sql = "SELECT COUNT(*) as count from Breezecard as b WHERE b.BelongsTo = ?";
+    conn.query(sql, [Username], function(err, result, fields) {
+        if (err) {
+            callback(err);
+        } else {
+            callback(result);
+        }
+    });
+}
+
 var loginCheck = function(Username, Password, callback) {
     //Check if User and Pass match in database
     var sql = "SELECT COUNT(*) as count FROM User as a WHERE a.Username = ? AND a.Password = ?;"
@@ -415,3 +426,4 @@ module.exports.updateHistory = updateHistory;
 module.exports.stationListData = stationListData;
 module.exports.endStationListData = endStationListData;
 module.exports.removeCard = removeCard;
+module.exports.checkBreezecardOwnership = checkBreezecardOwnership;
