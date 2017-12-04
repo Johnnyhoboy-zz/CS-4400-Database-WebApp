@@ -224,13 +224,14 @@ var BreezecardManagement = React.createClass({
                 maxWidth: 40
             },
             { Header: 'Card #', accessor: 'BreezecardNum' },
-            { Header: 'Value', accessor: 'Value' },
+
+            { Header: 'Value ($)', accessor: 'Value' },
             { Header: 'Owner', accessor: 'BelongsTo' }
         ];
 
-        return { columns: oColumns, data: [], owner: '', suspended: '', cardNumber: '',
+        return { columns: oColumns, data: [], owner: '', suspended: false, cardNumber: '',
                  valueLow: '', valueHigh: '', setValue: '', transfer: '', sort: "BreezecardNum",
-                 selected: breezeCardManagementOptions[0], descending: ''};
+                 selected: breezeCardManagementOptions[0], descending: '', descendingCheck: false, selectedRow: null};
     },
     selectRow : function(row) {
         this.setState( {selectedRow: row.original} );
@@ -256,30 +257,30 @@ var BreezecardManagement = React.createClass({
                     Owner:
                 </text>
                 <span style={style5}>
-                    <input type="text" name="owner_textbox" onChange={this.ownerChange}/>
+                    <input type="text" name="owner_textbox" onChange={this.ownerChange} value={this.state.owner}/>
                 </span>
-                <input type="checkbox" name="suspended_checkbox" id="suspended_checkbox" onClick={this.suspendedChange} />
+                <input type="checkbox" name="suspended_checkbox" id="suspended_checkbox" onClick={this.suspendedChange} checked={this.state.suspended}/>
                 <label htmlFor="suspended_checkbox"> Show Suspended Cards </label>
             </p>
             <p>
                 <text style={style5}>
                     Card Number:
                  </text>
-                <input type="text" name="card_number_textbox" onChange={this.cardNumberChange} />
+                <input type="text" name="card_number_textbox" onChange={this.cardNumberChange} value={this.state.cardNumber}/>
                 <span style={style40}>
-                    <button> Reset </button>
+                    <button onClick={this.resetFields}> Reset </button>
                 </span>
             </p>
             <span style={style5}>
                 <text style={style5}>
                     Value between:
                 </text>
-                <input type="text" name="value_start_textbox" size='6' onChange={this.valueLowChange}/>
+                <input type="text" name="value_start_textbox" size='6' onChange={this.valueLowChange} value={this.state.valueLow}/>
             </span>
             <text style={style5}>
                 and:
             </text>
-            <input type="text" name="value_end_textbox" size='6' onChange={this.valueHighChange}/>
+            <input type="text" name="value_end_textbox" size='6' onChange={this.valueHighChange} value={this.state.valueHigh}/>
             <span style={style40}>
                     <button onClick={this.updateData}> Update Filter </button>
             </span>
@@ -288,11 +289,11 @@ var BreezecardManagement = React.createClass({
                 Order by:
             </text>
             <div style={{width: "250px"}}>
-                <Dropdown options={breezeCardManagementOptions} onChange={this.sortChange} value={defaultOption}/>
+                <Dropdown options={breezeCardManagementOptions} onChange={this.sortChange} value={defaultOption} />
                 <text style={style5}>
                     Sort Descending?
                 </text>
-                <input type="checkbox" name="descending_checkbox" id="descending_checkbox" onClick={this.descendingChange} />
+                <input type="checkbox" name="descending_checkbox" id="descending_checkbox" onClick={this.descendingChange} checked={this.state.descendingCheck} />
             </div>
             <p></p>
             <ReactTable
@@ -303,17 +304,16 @@ var BreezecardManagement = React.createClass({
                     defaultSortMethod={undefined}/>
             <p>
                 <span style={style5}>
-                    <input type="text" name="card_value_textbox" onChange={this.setValueChange}/>
+                    <input type="text" name="card_value_textbox" onChange={this.setValueChange} value={this.state.setValue}/>
                 </span>
-                <button>Set Value of Selected Card</button>
+                <button onClick={this.changeCardValue}>Set Value of Selected Card</button>
             </p>
             <p>
                 <span style={style5}>
-                    <input type="text" name="transfer_card_textbox" onChange={this.transferChange}/>
+                    <input type="text" name="transfer_card_textbox" onChange={this.transferChange} value={this.state.transfer}/>
                 </span>
-                <button>Transfer Selected Card</button>
+                <button onClick={this.transferCard}>Transfer Selected Card</button>
             </p>
-
 
             <button onClick={this.nAdminFunctionalitya}>Back</button>
         </div>
@@ -341,9 +341,9 @@ var BreezecardManagement = React.createClass({
     },
     descendingChange: function(e) {
         if (e.target.checked) {
-            this.setState({descending : 'DESC'});
+            this.setState({descending : 'DESC', descendingCheck: true});
         } else {
-            this.setState({descending : ''});
+            this.setState({descending : '', descendingCheck: false});
         }
     },
     cardNumberChange: function(e) {
@@ -378,8 +378,53 @@ var BreezecardManagement = React.createClass({
             return response.json();
         }).then(data => this.setState({data : data}));
     },
+    changeCardValue: function() {
+        if (!this.state.selectedRow) {
+            alert('You need to select a breezecard to change the value!');
+        } else {
+            fetch(server + '/adminBreezeCardValueChange',
+                {method: 'post',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    "breezecardNumber": this.state.selectedRow.BreezecardNum,
+                    "cardValue": this.state.setValue
+                })
+            }).then(function(response) {
+                return response.json();
+            }).then(data => {
+                if (data.message == 'error') {
+                    alert('The field for breezecard value is not a number!');
+                }
+                this.updateData();
+            });
+        }
+    },
+    transferCard: function() {
+        fetch(server + '/adminBreezecardTransfer',
+            {method: 'post',
+             headers: {'Content-Type': 'application/json'},
+             body: JSON.stringify({
+                "cardNumber": this.state.selectedRow.BreezecardNum,
+                "originalOwner": this.state.selectedRow.BelongsTo,
+                "newOwner": this.state.transfer
+               })
+             }).then(function(response) {
+                return response.json();
+             }).then(data => {
+                if (data.message == 'error') {
+                    alert('The entered username is not a passenger!');
+                }
+                this.updateData();
+             });
+    },
+    resetFields: function() {
+        this.setState({owner: '', suspended: false, cardNumber: '', valueLow: '', valueHigh: '',
+                       sort: "BreezecardNum", descending: '', descendingCheck: false, selectedRow: null,
+                       selected: breezeCardManagementOptions[0], setValue: '', transfer: ''});
+    },
     nAdminFunctionalitya : function() { showAdminFunctionality(); }
 });
+
 
 var SuspendedCards = React.createClass({
     getInitialState : function() {
@@ -416,20 +461,18 @@ var SuspendedCards = React.createClass({
     nAdminFunctionality : function() { showAdminFunctionality(); }
 });
 
-
+const passengerFlowOptions = ['Station Name', '# Passengers In', '# Passengers Out', 'Flow', 'Revenue'];
 var PassengerFlowReport = React.createClass({
     getInitialState : function() {
         var oColumns = [
-            { Header: 'Station Name', accessor: 'station' },
-            { Header: '# Passengers In', accessor: 'pass_in' },
-            { Header: '# Passengers Out', accessor: 'pass_out' },
+            { Header: 'Station Name', accessor: 'stationName' },
+            { Header: '# Passengers In', accessor: 'passIn' },
+            { Header: '# Passengers Out', accessor: 'passOut' },
             { Header: 'Flow', accessor: 'flow' },
             { Header: 'Revenue', accessor: 'revenue'}
         ];
-        var oData = [
-            { station: 'New Donk Station', pass_in: '100', pass_out: '50', revenue: '$4.20' }
-        ];
-        return { columns: oColumns, data: oData };
+        return { columns: oColumns, data: [], descending: '', descendingCheck: false, selected: passengerFlowOptions[0], timeStart: '',
+                 timeEnd: '', sort: 'stationName', warning_text: ''};
     },
     render : function() {
         const style5 = {
@@ -440,6 +483,8 @@ var PassengerFlowReport = React.createClass({
             paddingRight: '40px'
         }
 
+        const defaultOption = this.state.selected;
+
         return (
         <div class="PassengerFlowReport">
             <p>Passenger Flow Report</p>
@@ -448,32 +493,108 @@ var PassengerFlowReport = React.createClass({
                     <text style={style40}>
                         Start Time
                     </text>
-                    <input type="text" name="start_time_textbox"/>
+                    <input type="datetime-local" name="start_time_textbox" onChange={this.startChange} value={this.state.timeStart}/>
                 </span>
                 <span style={style5}>
-                    <button>Update</button>
+                    <button onClick={this.updatePress}>Update</button>
                 </span>
-                <button>Reset</button>
+                <button onClick={this.resetData}>Reset</button>
             </p>
             <p>
                 <span style={style5}>
                     <text style={style40}>
                         End Time
                     </text>
-                    <input type="text" name="end_time_textbook"/>
+                    <input type="datetime-local" name="end_time_textbook" onChange={this.endChange} value={this.state.timeEnd}/>
+                    <span style={{paddingLeft: "15px"}}>
+                        <text id = 'text_warning' style = {{color: 'red'}}>
+                            {this.state.warning_text}
+                        </text>
+                    </span>
                 </span>
             </p>
-            <p>
-                <ReactTable
-                    data={this.state.data}
-                    columns={this.state.columns}
-                    defaultPageSize={10}
-                    sortable={false}
-                  />
-            </p>
+             <div style={{width: "250px"}}>
+                <text>Order By:</text>
+                <Dropdown options={passengerFlowOptions} onChange={this.sortChange} value={defaultOption} />
+                <text style={style5}>
+                    Sort Descending?
+                </text>
+                <input type="checkbox" name="descending_checkbox" id="descending_checkbox" onClick={this.descendingChange} checked={this.state.descendingCheck} />
+            </div>
+            <p></p>
+            <ReactTable
+                data={this.state.data}
+                columns={this.state.columns}
+                defaultPageSize={10}
+                sortable={false}/>
             <button onClick={this.nAdminFunctionality}>Back</button>
         </div>
         );
+    },
+    componentDidMount: function() {
+        this.updateData();
+    },
+    startChange: function(e) {
+        this.setState({timeStart: e.target.value});
+    },
+    endChange: function(e) {
+        this.setState({timeEnd: e.target.value});
+    },
+    descendingChange: function(e) {
+        if(e.target.checked) {
+            this.setState({descending: 'DESC', descendingCheck: true});
+        } else {
+            this.setState({descending: '', descendingCheck: false});
+        }
+    },
+    sortChange: function(e) {
+        if (e.value == passengerFlowOptions[0]) {
+            this.setState({sort: "stationName"});
+        } else if (e.value == passengerFlowOptions[1]) {
+            this.setState({sort: "passIn"});
+        } else if (e.value == passengerFlowOptions[2]) {
+            this.setState({sort: "passOut"});
+        } else if (e.value == passengerFlowOptions[3]) {
+            this.setState({sort: 'flow'});
+        } else {
+            this.setState({sort: 'revenue'});
+        }
+        this.setState({selected: e});
+
+    },
+    updatePress: function() {
+        if (this.state.timeStart == '') {
+            if (this.state.timeEnd == '') {
+                this.setState({warning_text: "Start and end time are either invalid or blank. Queried with no time restriction." });
+            } else {
+                this.setState({warning_text: "Start time is either invalid or blank. Queried with no start time restriction." });
+            }
+        } else if (this.state.timeEnd == '') {
+            this.setState({warning_text: "End time is either invalid or blank. Queried with no end time restriction." });
+        } else {
+            this.setState({warning_text : ''});
+        }
+        this.updateData();
+    },
+    updateData : function() {
+        fetch(server + '/passengerFlowData',
+        {method: 'post',
+         headers: {'Content-Type': 'application/json'},
+         body: JSON.stringify({
+             "timeStart": this.state.timeStart,
+             "timeEnd": this.state.timeEnd,
+             "sort": this.state.sort,
+             "desc": this.state.descending
+         })
+        }).then(function(response) {
+            return response.json();
+        }).then(data => this.setState({data : data}));
+    },
+    resetData: function() {
+        this.setState({data: [], descending: '', descendingCheck: false, selected: passengerFlowOptions[0], timeStart: '',
+                 timeEnd: '', sort: 'stationName', warning_text: ''}, function() {
+                        this.updateData();
+                 });
     },
     nAdminFunctionality : function() { showAdminFunctionality(); }
 });
