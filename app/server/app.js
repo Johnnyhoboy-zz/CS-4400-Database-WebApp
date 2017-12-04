@@ -83,7 +83,7 @@ app.post('/adminBreezeCardData', (req, res) => {
         });
     } else {
         dbconn.adminBreezecardData(req.body.owner, req.body.cardNumber, req.body.valueLow, req.body.valueHigh, req.body.sort, req.body.desc, function(result) {
-            console.log(result);
+            
             res.send(result);
         });
     }
@@ -111,7 +111,7 @@ app.get('/stationListData', (req, res) => {
         for(var i = 0; i < result.length; i++) {
             actual.push({'value': result[i].StopID, 'label': result[i].Name + " (" + (result[i].IsTrain ? "Train) " : "Bus) ") + "- $" + result[i].EnterFare});
         }
-        console.log(result[i]);
+        
         res.send(actual);
     });
 });
@@ -127,6 +127,12 @@ app.post('/endStationListData', (req, res) => {
     });
 });
 
+app.get('/passengerCards', (req, res) => {
+    dbconn.passengerCards( function(result) {
+
+        res.send(result);
+    });
+});
 app.post('/passengerCardData', (req, res) => {
     dbconn.passengerCardData(req.body.sort, req.body.desc, function(result) {
 
@@ -170,7 +176,7 @@ var start = req.body.Start;
         end = '9999/12/31 00:00:00';
     }
      dbconn.updateHistory(start, end, req.body.sort, req.body.desc, function(result) {
-        console.log(result);
+        
         res.send(result);
      });
 });
