@@ -211,6 +211,14 @@ var endStationListData = function(start, callback) {
     });
 };
 
+var passengerCards = function( callback) {
+    var sql = "SELECT BreezecardNum, Value FROM Breezecard WHERE BelongsTo='busrider73'";
+    conn.query(sql, function(err, result, fields) {
+        if (err) throw err;
+        callback(result);
+    });
+};
+
 var passengerCardData = function(sort, desc, callback) {
     var sql = "SELECT BreezecardNum, Value FROM Breezecard WHERE BelongsTo='busrider73' ORDER BY " + sort + ' ' + desc + ';';
     conn.query(sql, function(err, result, fields) {
@@ -275,6 +283,7 @@ module.exports.inProgress = inProgress;
 module.exports.startTrip = startTrip;
 module.exports.endTrip = endTrip;
 module.exports.getFare = getFare;
+module.exports.passengerCards = passengerCards;
 module.exports.passengerCardData = passengerCardData;
 module.exports.tripHistoryData = tripHistoryData;
 module.exports.updateHistory = updateHistory;
