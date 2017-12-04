@@ -69,28 +69,47 @@ var Registration = React.createClass({
 	nLogin : function() { showLogIn(); }
 });
 
+var chosenCard = '';
+var chosenStarting= '';
+var chosenEnding = '';
 var PassengerFunctionality = React.createClass({
 
 	getInitialState : function() {
-		return { data: [], cardData: [], selectedCard: '',selectedStart: '', selectedEnd: '' }
+		return { data: [], cardData: [], endData: [],selectedCard: chosenCard, selectedStart: chosenStarting, selectedEnd: chosenEnding, value: '', fare: '', prompt: 'Start Trip', disable: '', count: '', current: {}, currentE: {} }
 	},
 	componentDidMount : function() {
 		fetch(server + "/stationListData")
 		.then(response => response.json())
-		.then(data => this.setState({ data: data })
+		.then(data => {console.log(data); this.setState({ data: data });}
 		);
+
+		fetch(server + "/stationListData")
+		.then(response => response.json())
+		.then(data => this.setState({ endData: data })
+		);
+
 		fetch(server + "/passengerCardData")
 		.then(response => response.json())
 		.then(data => this.setState({ cardData: data })
 		);
+
+		fetch(server + "/inProgress")
+		.then(response => response.json())
+		.then(data => {console.log(data); this.setState({ count: data.count }, function () {
+				if(this.state.count > 0) {
+					this.setState({ prompt: 'In Progress', disable: 'true'} );
+				}
+			});}
+		);
+
+		if(this.state.count > 0) {
+			this.setState({ prompt: 'In Progress', disable: 'true'} );
+		}
 	},
     render : function() { 
-    	var names = this.state.data.map(function(item) {
- 		 return item.Name;
-		});
-		var cards = this.state.cardData.map(function(cItem) {
- 		 return cItem.BreezecardNum;
-		});
+    	var cards = this.state.cardData.map(function(items) {
+    		return items.BreezecardNum;
+    	});
 		return (
     	
     	<div class="PassengerFunctionality">
@@ -100,23 +119,23 @@ var PassengerFunctionality = React.createClass({
 
 	    	<div style={{width: "250px"}}>
 	    		<label>Breeze Card </label>
-	    		<Dropdown options={cards} onChange={this.selectedCard} value={this.state.selectedCard} placeholder="Select an option" />
+	    		<Dropdown disabled={this.state.disable} options={cards} onChange={this.selectedCard} value={this.state.selectedCard} />
 	    		<a href="#"onClick={this.nManageCards}>Manage Cards</a>
 	    	</div>
 	    	<br/>
-	    	<label>Balance </label><label>$12 </label>
+	    	<p>Balance: ${this.state.value}</p>
 	    	<br/>
 	    	<br/>
 	    	<div style={{width: "250px"}}>
 	    		<label>Start At </label>
-	    		<Dropdown options={names} onChange={this.selectedStart} value={this.state.selectedStart} placeholder="Select an option" />
-	    		<a href="#"onClick={this.startTrip}>Start Trip</a>
+	    		<Dropdown options={this.state.data} onChange={this.selectedStart} value={this.state.current.label} />
+	    		<a href="#"onClick={this.startTrip}>{this.state.prompt}</a>
 			</div>
 			<br/>
 			<br/>
 			<div style={{width: "250px"}}>
 				<label>End At </label>
-	    		<Dropdown options={names} onChange={this.selectedEnd} value={this.state.selectedEnd} placeholder="Select an option" />
+	    		<Dropdown options={this.state.endData} onChange={this.selectedEnd} value={this.state.currentE.label} />
 	    		<a href="#"onClick={this.endTrip}>End Trip</a>
 			</div>
 			<br/>
@@ -128,26 +147,85 @@ var PassengerFunctionality = React.createClass({
     	); 
 	},
 	selectedCard : function(e) {
-		const items = this.state.items;
-    	items[1].role = e.target.value;
-
-    	// update state
-    	this.setState({
-        items,
-    });
+		this.setState({ selectedCard: e.value}, function() {
+		fetch(server + '/getValue',
+        {method: 'post',
+         headers: {'Content-Type': 'application/json'},
+         body: JSON.stringify({
+             "BreezecardNum": this.state.selectedCard,
+         })
+        }).then(response => response.json())
+        .then(data => this.setState({value : data.Value}));
+        });
 	},
  
  	selectedStart : function(e) {
-
-		this.setState({ selectedEnd: e.target.value} );
+		this.setState({ selectedStart: e.value, current: {'value': e.value, 'label': e.label}}, function() {
+		chosenStarting = this.state.selectedStart;
+		fetch(server + '/getFare',
+        {method: 'post',
+         headers: {'Content-Type': 'application/json'},
+         body: JSON.stringify({
+             "Start": this.state.selectedStart,
+         })
+        }).then(response => response.json())
+        .then(data => { console.log(this.state); 
+        this.setState({fare : data.EnterFare})});
+   
+		fetch(server + '/endStationListData',
+        {method: 'post',
+         headers: {'Content-Type': 'application/json'},
+         body: JSON.stringify({
+             "Start": e.value,
+         })
+        }).then(response => response.json())
+        .then(data => this.setState({endData : data, currentE: {}})
+        );
+	    });
 	},
 
 	selectedEnd : function(e) {
-		this.setState({ selectedEnd: e.target.value} );
+		this.setState({ selectedEnd: e.value, currentE: {'value': e.value, 'label': e.label}}, function() {
+			chosenEnding = this.state.selectedEnd;
+		});
 	},
 
 	startTrip : function() {
-		console.log(this.state.selectedCard);
+		if(this.state.prompt == 'In Progress') {
+			return;
+		}
+		if(this.state.selectedCard == '') {
+			alert('Breezecard cannot be null');
+			return;
+		}
+		if(this.state.value < this.state.fare) {
+        	alert('Insufficient funds');
+        	return;
+        }
+		fetch(server + '/startTrip', {
+			method: 'post',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify({
+				 "Start": this.state.current.value,
+				 "BreezecardNum": this.state.selectedCard,
+			})
+		});
+		this.setState({ prompt: 'In Progress', disable: 'true'} );
+	},
+	endTrip : function() {
+		if(this.state.selectedStart == '' && prompt == 'Start Trip') {
+			alert('Must start trip before you can end it');
+			return;
+		}
+		fetch(server + '/endTrip', {
+			method: 'post',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify({
+				 "End": this.state.currentE.value,
+				 "BreezecardNum": this.state.selectedCard,
+			})
+		});
+		this.setState({prompt: 'Start Trip', disable: 'false'} );
 	},
 	nTripHistory : function() { showTripHistory(); },
 	nManageCards : function() { showManageCards(); },
