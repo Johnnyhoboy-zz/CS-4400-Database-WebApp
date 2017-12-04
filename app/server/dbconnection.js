@@ -309,7 +309,7 @@ var startTrip = function(start, breezecard) {
 };
 
 var getFare = function(start, callback) {
-    var sql = "SELECT EnterFare FROM Station WHERE Name=?";
+    var sql = "SELECT EnterFare FROM Station WHERE StopID=?";
     conn.query(sql, [start], function(err, result, fields) {
         if (err) throw err;
         callback(result);
@@ -351,6 +351,7 @@ var passengerCards = function(username, callback) {
 
 var passengerCardData = function(username, sort, desc, callback) {
     var sql = "SELECT BreezecardNum, Value FROM Breezecard WHERE BelongsTo=? ORDER BY " + sort + ' ' + desc + ';';
+    console.log(username);
     conn.query(sql, [username], function(err, result, fields) {
         if (err) throw err;
         callback(result);
@@ -387,7 +388,7 @@ var addCard = function(breezecard, username) {
 };
 
 var updateHistory = function(username, start, end, sort, desc, callback) {
-    var sql = "SELECT StartTime, StartsAt, EndsAt, Tripfare, BreezecardNum FROM Trip WHERE Trip.BreezecardNum IN (SELECT BreezecardNum FROM Breezecard AS b WHERE b.belongsTo(?))" + 
+    var sql = "SELECT StartTime, StartsAt, EndsAt, Tripfare, BreezecardNum FROM Trip WHERE Trip.BreezecardNum IN (SELECT BreezecardNum FROM Breezecard AS b WHERE b.BelongsTo=?)" + 
     " WHERE (StartTime BETWEEN ? AND ?) ORDER BY " + sort + ' ' + desc + ';';
     conn.query(sql, [username, start, end], function(err, result, fields) {
         if (err) throw err;

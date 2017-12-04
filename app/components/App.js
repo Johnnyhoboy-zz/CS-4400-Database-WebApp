@@ -57,7 +57,7 @@ var LogIn = React.createClass({
 				} else if (data.message == 'admin') {
 					showAdminFunctionality();
 				} else if (data.message == 'passenger') {
-					showPassengerFunctionality();
+					showPassengerFunctionality(this.state.username);
 				}
             });
 	},
@@ -154,9 +154,9 @@ var Registration = React.createClass({
 					alert('The email you inputed already exists!');
 				} else if (data.message == 'sameBreezecard') {
 					alert('You entered in an existing Breezecard, suspending it, and generating new Breezecard');
-					showPassengerFunctionality();
+					showPassengerFunctionality(this.state.username);
 				} else {
-					showPassengerFunctionality();
+					showPassengerFunctionality(this.state.username);
 				}
             });
 	},
@@ -177,7 +177,7 @@ var PassengerFunctionality = React.createClass({
 	componentDidMount : function() {
 		fetch(server + "/stationListData")
 		.then(response => response.json())
-		.then(data => {console.log(data); this.setState({ data: data });}
+		.then(data => { this.setState({ data: data });}
 		);
 
 		fetch(server + "/stationListData")
@@ -185,14 +185,20 @@ var PassengerFunctionality = React.createClass({
 		.then(data => this.setState({ endData: data })
 		);
 
-		fetch(server + "/passengerCards")
+		fetch(server + '/passengerCards',
+        {method: 'post',
+         headers: {'Content-Type': 'application/json'},
+         body: JSON.stringify({
+			 "username": this.props.username
+         })
+        })
 		.then(response => response.json())
 		.then(data => this.setState({ cardData: data })
 		);
 
 		fetch(server + "/inProgress")
 		.then(response => response.json())
-		.then(data => {console.log(data); this.setState({ count: data.count }, function () {
+		.then(data => { this.setState({ count: data.count }, function () {
 				if(this.state.count > 0) {
 					this.setState({ prompt: 'In Progress', disable: 'true'} );
 				}
@@ -264,7 +270,7 @@ var PassengerFunctionality = React.createClass({
         {method: 'post',
          headers: {'Content-Type': 'application/json'},
          body: JSON.stringify({
-             "Start": this.state.selectedStart,
+             "Start": this.state.current.value,
          })
         }).then(response => response.json())
         .then(data => { console.log(this.state); 
@@ -327,7 +333,7 @@ var PassengerFunctionality = React.createClass({
 		});
 		this.setState({prompt: 'Start Trip', disable: 'false'} );
 	},
-	nTripHistory : function() { showTripHistory(this.props.username); },
+	nTripHistory : function() { console.log(this.props.username); showTripHistory(this.props.username); },
 	nManageCards : function() { showManageCards(this.props.username); },
 	nLogin : function() { showLogIn(); }
 });
@@ -335,6 +341,7 @@ var PassengerFunctionality = React.createClass({
 const manageOptions = ['Breezecard', 'Value'];
 var ManageCards = React.createClass({
     getInitialState : function() {
+		console.log("props: " + this.props.username);
     	var oColumns = [
 			{
                 Header: '',
@@ -414,14 +421,17 @@ var ManageCards = React.createClass({
 				 "BreezecardNum": this.state.selectedRow.BreezecardNum
 			})
 		});
-		fetch(server + "/passengerCards", {method: 'post',
-		headers: {'Content-Type': 'application/json'},
-		body: JSON.stringify({
-			"username": this.props.username
-		})})
-		.then(response => response.json())
-		.then(data => this.setState({ data: data })
-		);
+		fetch(server + '/passengerCardData',
+        {method: 'post',
+         headers: {'Content-Type': 'application/json'},
+         body: JSON.stringify({
+			 "username": this.props.username,
+             "sort": this.state.sort,
+             "desc": this.state.descending
+         })
+        }).then(function(response) {
+            return response.json();
+        }).then(data => this.setState({data : data}));
 		}
 	},
 	update : function() {
@@ -500,7 +510,7 @@ var ManageCards = React.createClass({
 		});
 	},
 
-	nPassengerFunctionality : function() { showPassengerFunctionality(); }
+	nPassengerFunctionality : function() { showPassengerFunctionality(username); }
 });
 
 var TripHistory = React.createClass({
@@ -580,7 +590,7 @@ var TripHistory = React.createClass({
     resetData: function() {
         this.setState({ columns: oColumns, data: [], start: '', end: ''});
     },
-	nPassengerFunctionality : function() { showPassengerFunctionality(); }
+	nPassengerFunctionality : function() { showPassengerFunctionality(this.props.username); }
 });
 
 

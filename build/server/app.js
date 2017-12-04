@@ -310,9 +310,9 @@ app.post('/passengerCards', function (req, res) {
         res.send(result);
     });
 });
+
 app.post('/passengerCardData', function (req, res) {
     dbconn.passengerCardData(req.body.username, req.body.sort, req.body.desc, function (result) {
-
         res.send(result);
     });
 });
