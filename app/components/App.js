@@ -11,62 +11,169 @@ const server = "http://localhost:8080";
 //
 
 var LogIn = React.createClass({
+	getInitialState : function() {
+		return { userName: '', password: ''};
+	},
     render : function() { return (
-        <div className="LogIn">
-            <center>
-            <h1>Log In</h1>
-            <form>
-              Username:<br />
-              <input type="text" name="user" /><br />
-              Password:<br />
-              <input type="text" name="pass" /><br />
-            </form>
-            <br />
-            <button>Login</button>
-            <button onClick={this.nRegistration}>Register</button>
-            <button onClick={this.nPassengerFunctionality}>Go To Passenger Functionality</button>
-            <button onClick={this.nAdminFunctionality}>Go To Admin Functionality</button>
-            </center>
-        </div>
-        );
-    },
+    	<div className="LogIn">
+    		<center>
+	    	<h1>Log In</h1>
+	    	<form>
+			  Username:<br />
+			  <input type="text" onChange={this.userChange}/><br />
+			  Password:<br />
+			  <input type="password" onChange={this.passChange}/><br />
+	    	</form>
+	        <br />
+	    	<button onClick={this.login}>Login</button> <br /> <br/>
+	    	<button onClick={this.nRegistration}>Register</button> <br /> <br />
+	    	<button onClick={this.nPassengerFunctionality}>Go To Passenger Functionality</button> <br /> <br />
+	    	<button onClick={this.nAdminFunctionality}>Go To Admin Functionality</button> <br />
+	    	</center>
+    	</div>
+    	); 
+	},
+	
+	userChange : function(e) {
+		this.setState({ userName: e.target.value} );
+	},
+	passChange : function(e) {
+		this.setState({ password: e.target.value} );
+	},
+	
+	
+	login: function() {
+
+		if (this.state.userName == '' || this.state.password == '') {
+			alert('Please fill out all non-optional fields');
+			return;
+		} 
+		fetch(server + '/login', {
+			method: 'post',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify({
+				 "Username": this.state.userName,
+				 "Password": this.state.password,
+			})
+		}).then(function(response) {
+                return response.json();
+            }).then(data => {
+ 				if (data.message == 'loginError') {
+					alert('The login you inputed was incorrect!');
+				} else if (data.message == 'admin') {
+					showAdminFunctionality();
+				} else if (data.message == 'passenger') {
+					showPassengerFunctionality();
+				}
+            });
+	},
+
     nRegistration : function() { showRegistration(); },
     nPassengerFunctionality : function() { showPassengerFunctionality(); },
     nAdminFunctionality : function() { showAdminFunctionality(); }
 });
 
 var Registration = React.createClass({
+	getInitialState : function() {
+		return { userName: '', email: '', password: '', confirmPassword: '', breezeCardNum: '', type: "new"};
+	},
     render : function() { return (
-        <div class="Registration">
-            <center>
-            <h1>Registration</h1>
-            <hr />
-             <form>
-              Username:
-              <input type="text" name="user" /><br />
-              Email:
-              <input type="text" name="email" /><br />
-              Password:
-              <input type="text" name="pass" /><br />
-              Confirm Password:
-              <input type="text" name="confirm" /><br />
-              <h3>Breeze Card</h3>
-              <input type="radio" name="useBreezeCard" /><label>Use my existing Breeze Card</label><br />
-              Card Number:
-              <input type="text" name="cardNumber" /><br />
-              <input type="radio" name="getNewCard" /><label>Get a new Breeze Card</label><br />
-            </form>
-            <hr />
-            <br />
+    	<div class="Registration">
+    		<center>
+	    	<h1>Registration</h1>
+	    	<hr />
+	    	 <form>
+			  <label>Username: </label>
+			  <input type="text" onChange={this.userChange}/><br />
+			  <label>Email: </label>
+			  <input type="text" onChange={this.emailChange}/><br />
+			  <label>Password: </label>
+			  <input type="password" onChange={this.passChange}/><br />
+			  <label>Confirm Password: </label>
+			  <input type="password" onChange={this.confirmPassChange} /><br />
+			  
+			  <h3>Breeze Card</h3>
+			  <input type="radio" name="UseBreezeCard" value="old" checked={this.state.type!='new'} onChange={this.typeChange}/><label>Use my existing Breeze Card</label><br />
+			  <label>Card Number: </label>
+			  <input type="text" onChange={this.cardChange}/><br />
+			  <input type="radio" name="UseBreezeCard" value="new" checked={this.state.type=='new'} onChange={this.typeChange}/><label>Get a new Breeze Card</label><br />
+	    	</form>
+	    	<hr />
+	        <br />
 
-            <button>Create Account</button>
-            <button onClick={this.nLogin}>Back</button>
-            </center>
+	    	<button onClick={this.register}>Create Account</button>
+	    	<button onClick={this.nLogin}>Back</button> 
+	    	</center>
 
-        </div>
-        );
-    },
-    nLogin : function() { showLogIn(); }
+    	</div>
+    	); 
+	},
+	
+	userChange : function(e) {
+		this.setState({ userName: e.target.value} );
+	},
+	emailChange : function(e) {
+		this.setState({ email: e.target.value} );
+	},
+	passChange : function(e) {
+		this.setState({ password: e.target.value} );
+	},
+	confirmPassChange : function(e) {
+		this.setState({ confirmPassword: e.target.value} );
+	},
+	cardChange : function(e) {
+		this.setState({ breezeCardNum: e.target.value} );
+	},
+	typeChange : function(e) {
+		this.setState({ type: e.target.value} );
+	},
+	register : function() {
+		if (this.state.userName == '' || this.state.email == '' || this.state.password == '' || this.state.confirmPassword == '') {
+			alert('Please fill out all non-optional fields');
+			return;
+		} else if (this.state.password.length <=7 || this.state.password != this.state.confirmPassword) {
+			alert('Please make sure your passwords match and is at least 8 chars');
+			return;
+		} else if (this.state.email.includes("@") == false || this.state.email.includes(".") == false) {
+			alert('Please make sure your email is valid');
+			return;
+		} else if (this.state.type != "new" && (this.state.breezeCardNum.length <=15 || this.state.breezeCardNum.length > 16)) {
+			alert('Please input a valid 16 digit Breeze Card');
+			return;
+		}
+		fetch(server + '/registerAccount', {
+			method: 'post',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify({
+				 "Username": this.state.userName,
+				 "Email": this.state.email,
+				 "Password": this.state.password,
+				 "BreezecardNum": this.state.breezeCardNum,
+				 "Type" : this.state.type
+			})
+		}).then(function(response) {
+                return response.json();
+            }).then(data => {
+ 				if (data.message == 'userError') {
+					alert('The username you inputed already exists!');
+				} else if (data.message == 'emailError') {
+					alert('The email you inputed already exists!');
+				} else if (data.message == 'breezecardError') {
+					alert('The breezecard you entered already exists!');
+				} else if (data.message == 'conflictError') {
+					alert('The Conflict already exists!');
+				} else if (data.message == 'sameBreezecard') {
+					alert('You entered in an existing Breezecard, suspending it, and generating new Breezecard');
+					showPassengerFunctionality();
+				} else {
+					showPassengerFunctionality();
+				}
+            });
+	},
+	
+	nPassengerFunctionality : function() { showPassengerFunctionality(); },
+	nLogin : function() { showLogIn(); }
+	
 });
 
 var PassengerFunctionality = React.createClass({
@@ -189,14 +296,16 @@ var TripHistory = React.createClass({
 
 var AdminFunctionality = React.createClass({
     render : function() { return (
-        <div class="AdminFunctionality">
-            <p>Admin Functionality</p>
-            <button onClick={this.nBreezecardManagement}>Go To Breezecard Management</button>
-            <button onClick={this.nStationManagement}>Go To Station Management</button>
-            <button onClick={this.nPassengerFlowReport}>Go To PassengerFlowReport</button>
-            <button onClick={this.nSuspendedCards}>Go To Suspended Cards</button>
-            <button onClick={this.nLogin}>Back</button>
-        </div>
+        <div className="AdminFunctionality"> 
+		<center>
+	    	<p>Admin Functionality</p>
+	    	<button onClick={this.nBreezecardManagement}>Go To Breezecard Management</button> <br /> <br />
+	    	<button onClick={this.nStationManagement}>Go To Station Management</button> <br /> <br />
+	    	<button onClick={this.nPassengerFlowReport}>Go To PassengerFlowReport</button> <br /> <br />
+	    	<button onClick={this.nSuspendedCards}>Go To Suspended Cards</button> <br /> <br />
+	    	<button onClick={this.nLogin}>Back</button> <br />
+		</center>
+    	</div>
         );
     },
     nBreezecardManagement : function() { showBreezecardManagement(); },
@@ -427,38 +536,102 @@ var BreezecardManagement = React.createClass({
 
 
 var SuspendedCards = React.createClass({
-    getInitialState : function() {
-            var oColumns = [
-                { Header: 'Card #', accessor: 'cardNumber' },
-                { Header: 'New Owner', accessor: 'newOwner' },
-                { Header: 'Date Suspended', accessor: 'dateSuspended' },
-                { Header: 'Previous Owner', accessor: 'prevOwner'}
-            ];
-            var oData = [
-                { cardNumber: '1446 2121 0808 1229', newOwner: 'John H', dateSuspended: '11-15-2017 4:20pm', prevOwner: 'Alex C' },
-                { cardNumber: '1581 9910 0010 4404', newOwner: 'Ryan A', dateSuspended: '11-20-2017 4:20am', prevOwner: 'Sam C' }
-            ];
-            return { columns: oColumns, data: oData };
-        },
-        render : function() {
-            return (
-                <div class="StationManagement">
-                    <h1>Suspended Cards</h1>
-                    <ReactTable
-                        data={this.state.data}
-                        columns={this.state.columns}
-                        defaultPageSize={10}
-                      /><br />
-                     <center>
-                    <button>Assign Selected Card to New Owner</button><br /><br />
-                    <button>Assign Selected Card to Previous Owner</button><br /><br />
-                    <br />
-                    <button onClick={this.nAdminFunctionality}>Back To Admin Functionality</button>
-                    </center>
-                </div>
-            );
-        },
-    nAdminFunctionality : function() { showAdminFunctionality(); }
+	getInitialState : function() {
+			var oColumns = [
+				{
+					Header: '',
+						accessor: 'editButton',
+						Cell: (row) => (
+							<div>
+								<input type="radio" name="ownertype" value="select" 
+										onClick={() => this.selectRow(row)}/>
+							</div>
+						),
+						maxWidth: 40
+				},
+				{ Header: 'Card #', accessor: 'BreezecardNum' },
+				{ Header: 'New Owner', accessor: 'Username'},
+				{ Header: 'Date Suspended', accessor: 'DateTime' },
+				{ Header: 'Previous Owner', accessor: 'BelongsTo'}
+			];
+			return { columns: oColumns, data: [], selectedRow: null };
+		},
+		
+		selectRow : function(row) {
+			this.setState( {selectedRow: row.original} );
+		},
+		
+		componentDidMount : function() {
+			fetch(server + "/suspendedCardsData")
+			.then(response => response.json())
+			.then(data => this.setState({ data: data })
+			);
+		},
+		refreshState : function() {
+				fetch(server + "/suspendedCardsData")
+				.then(response => response.json())
+				.then(data => this.setState({ data: data })
+				);
+		},
+	  	render : function() { 
+	  		return (
+		    	<div class="SuspensedCardManagement">
+			    	<h1>Suspended Cards</h1>
+			    	<ReactTable
+					    data={this.state.data}
+					    columns={this.state.columns}
+					    sortable={false}
+					  /><br />
+					 <center>
+			    	<button onClick={this.changeNewOwner}>Assign Selected Card to New Owner</button><br /><br />
+			    	<button onClick={this.changePrevOwner}>Assign Selected Card to Previous Owner</button><br /><br />
+			    	<br />
+			    	<p> Assigning the card to an owner will unlock all<br />
+						accounts conflicted on the same Breeze Card </p> <br />
+					<button onClick={this.nAdminFunctionality}>Back To Admin</button>
+					</center>
+		    	</div>
+	    	);
+		},
+	changeNewOwner : function() { 
+		if (!this.state.selectedRow) {
+			alert('You need to choose a Breezecard before you can assign it.');
+		} else {
+
+			var newUser = this.state.selectedRow.Username;
+			var breezeNum = this.state.selectedRow.BreezecardNum;
+			fetch(server + '/updateOwner', {
+				method: 'post',
+				headers: {'Content-Type': 'application/json'},
+				body: JSON.stringify({
+					"Username": newUser,
+					"BreezecardNum": breezeNum
+				})
+			}).then(function(response) {
+				return response.json();
+			}).then(data => this.refreshState() );
+		}
+	},
+	changePrevOwner : function() { 
+		if (!this.state.selectedRow) {
+			alert('You need to choose a Breezecard before you can assign it.');
+		} else {
+
+			var oldUser = this.state.selectedRow.BelongsTo;
+			var breezeNum = this.state.selectedRow.BreezecardNum;
+			fetch(server + '/updateOwner', {
+				method: 'post',
+				headers: {'Content-Type': 'application/json'},
+				body: JSON.stringify({
+					"Username": oldUser,
+					"BreezecardNum": breezeNum
+				})
+			}).then(function(response) {
+				return response.json();
+			}).then(data => this.refreshState() );
+		}
+	},
+	nAdminFunctionality : function() { showAdminFunctionality(); }
 });
 
 const passengerFlowOptions = ['Station Name', '# Passengers In', '# Passengers Out', 'Flow', 'Revenue'];
