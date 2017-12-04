@@ -1,0 +1,52 @@
+App.js
+	lines 15, 35, 41, 49, 72, 107, 125, 142 - Change username to userName 
+	line 510 - Change to
+		}).then((response) => this.update());
+	line 513 - Change username to this.props.username 
+	line 580 - Change Username to username
+	lines 590-591 - Change to 
+		reset: function() {
+        	this.setState({ start: '', end: ''}, () => this.updateHist());
+    line 833 - Change to 
+    	selected: breezeCardManagementOptions[0], setValue: '', transfer: ''}, () => this.updateData());
+    DELETE lines 484-487
+    line 484 - Change to
+    	if(this.state.card.length != 16) {
+    line 495 - Change to
+    	}).then((response) => response.json()).then((data)=>{ this.update(); if (data.message) alert(data.message); });
+    line 499 - Change to
+    	if(this.state.credit == '' || this.state.credit.length != 16) {
+			alert('Must have 16-digit credit card to add value');
+	DELETE line 402
+	line 320 - Change prompt to this.state.prompt
+	line 225 - Delete disabled={this.state.disable}
+	line 199 - Change to KEEP ONE LINE
+		fetch(server + "/inProgress", {method:"post",headers:{'Content-Type':'application/json'},body: JSON.stringify({"breezecard":this.state.chosenCard})})
+	line 305 - Change to
+		if(parseInt(this.state.value) < parseInt(this.state.fare)) {
+	DELETE lines 208-210
+	line 259 - Change to
+		.then(data => this.setState({value : data.Value}, ()=>this.componentDidMount()));
+app.js
+	line 338 - Change to
+		dbconn.addCard(req.body.BreezecardNum, req.body.username, function(msg) { res.send({'message': msg})});
+	line 354 - Change to 
+		dbconn.updateHistory(req.body.username, start, end, req.body.sort, req.body.desc, function(result) {
+	line 343 - Add new line after current line 342
+		res.send({ 'message': 'success' });
+	line 362 - Change to
+		dbconn.inProgress(req.body.breezecard, function(result) {
+dbconnection.js
+	line 283 - Change to 
+		var inProgress = function(breezecard, callback) {
+	line 284 - Change to
+		var sql = "SELECT COUNT(*) as count FROM Trip WHERE BreezecardNum=? AND EndsAt is null";
+	line 285 - Change to
+		conn.query(sql, [breezecard], function(err, result, fields) {
+	line 305 - Change WHERE Name=? to WHERE StopID=?
+	line 306 - CHANGE [start, breezecard] to [start, breezecard, start]
+	line 383 - Change to
+		var addCard = function(breezecard, username, callback) {
+	line 386 - Change to
+		callback(err);
+	line 392 - Change WHERE to AND
