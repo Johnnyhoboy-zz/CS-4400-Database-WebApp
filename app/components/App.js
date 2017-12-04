@@ -599,12 +599,14 @@ var SuspendedCards = React.createClass({
 		} else {
 
 			var newUser = this.state.selectedRow.Username;
+			var oldUser = this.state.selectedRow.BelongsTo;
 			var breezeNum = this.state.selectedRow.BreezecardNum;
 			fetch(server + '/updateOwner', {
 				method: 'post',
 				headers: {'Content-Type': 'application/json'},
 				body: JSON.stringify({
 					"Username": newUser,
+					"otherUser" : oldUser,
 					"BreezecardNum": breezeNum
 				})
 			}).then(function(response) {
@@ -618,12 +620,14 @@ var SuspendedCards = React.createClass({
 		} else {
 
 			var oldUser = this.state.selectedRow.BelongsTo;
+			var newUser = this.state.selectedRow.Username;
 			var breezeNum = this.state.selectedRow.BreezecardNum;
 			fetch(server + '/updateOwner', {
 				method: 'post',
 				headers: {'Content-Type': 'application/json'},
 				body: JSON.stringify({
 					"Username": oldUser,
+					"otherUser" : newUser,
 					"BreezecardNum": breezeNum
 				})
 			}).then(function(response) {

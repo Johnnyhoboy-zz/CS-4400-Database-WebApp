@@ -134,10 +134,24 @@ app.get('/suspendedCardsData', (req, res) => {
 });
 
 app.post('/updateOwner', (req, res) => {
+
     dbconn.updateOwner(req.body.Username, req.body.BreezecardNum, function (result) {
-        // console.log('Updated Owner');
+        //Check if old owner or new owner still has a breezecard, if not then generate new one
+        dbconn.checkBreezecardOwnership(req.body.Username, function (result) {
+            var count = result[0].count;
+            if (count == 0) {
+                insertBreezecard(req.body.Username);
+            }
+        });
+        dbconn.checkBreezecardOwnership(req.body.otherUser, function (result) {
+            var count = result[0].count;
+            if (count == 0) {
+                insertBreezecard(req.body.otherUser);
+            }
+        });
+
     });
-    res.send({'message': 'pending'});
+
 });
 
 app.post('/login', (req, res) => {
@@ -154,10 +168,13 @@ app.post('/login', (req, res) => {
             // console.log(IsAdmin);
             if (loginExists == 0) {
                 res.send({'message' : 'loginError'});
+                return;
             } else if(loginExists == 1 && IsAdmin == 1) {
                 res.send({'message' : 'admin'});
+                return;
             } else if (loginExists == 1 && IsAdmin == 0) {
                 res.send({'message' : 'passenger'});
+                return;
             }
         });
 
@@ -246,8 +263,10 @@ app.post('/registerAccount', (req, res) => {
                         dbconn.registerBreezecard(req.body.BreezecardNum, req.body.Username, function(result) {
                             if(err) {
                                  res.send({'message' : 'breezecardError'});
+                                 return;
                             } else {
                                 res.send({'message' : 'success'});
+                                return;
                             }
                         });
                     }

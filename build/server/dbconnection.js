@@ -141,7 +141,6 @@ var passengerFlowData = function passengerFlowData(start, end, sort, desc, callb
 var suspendedCardsData = function suspendedCardsData(callback) {
     var sql = "SELECT * FROM Breezecard NATURAL JOIN Conflict";
     conn.query(sql, function (err, result, fields) {
-        //console.log(sql);
         if (err) throw err;
         callback(result);
     });
@@ -156,6 +155,17 @@ var updateOwner = function updateOwner(Username, BreezeCardNum, callback) {
     conn.query(sql, [Username], function (err, result, fields) {
         if (err) throw err;
         callback(result);
+    });
+};
+
+var checkBreezecardOwnership = function checkBreezecardOwnership(Username, callback) {
+    var sql = "SELECT COUNT(*) as count from Breezecard as b WHERE b.BelongsTo = ?";
+    conn.query(sql, [Username], function (err, result, fields) {
+        if (err) {
+            callback(err);
+        } else {
+            callback(result);
+        }
     });
 };
 
@@ -241,3 +251,4 @@ module.exports.checkBreezecard = checkBreezecard;
 module.exports.createConflict = createConflict;
 module.exports.loginCheck = loginCheck;
 module.exports.adminCheck = adminCheck;
+module.exports.checkBreezecardOwnership = checkBreezecardOwnership;

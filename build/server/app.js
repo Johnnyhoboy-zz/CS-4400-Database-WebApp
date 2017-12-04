@@ -141,10 +141,22 @@ app.get('/suspendedCardsData', function (req, res) {
 });
 
 app.post('/updateOwner', function (req, res) {
+
     dbconn.updateOwner(req.body.Username, req.body.BreezecardNum, function (result) {
-        console.log('Updated Owner');
+        //Check if old owner or new owner still has a breezecard, if not then generate new one
+        dbconn.checkBreezecardOwnership(req.body.Username, function (result) {
+            var count = result[0].count;
+            if (count == 0) {
+                insertBreezecard(req.body.Username);
+            }
+        });
+        dbconn.checkBreezecardOwnership(req.body.otherUser, function (result) {
+            var count = result[0].count;
+            if (count == 0) {
+                insertBreezecard(req.body.otherUser);
+            }
+        });
     });
-    res.send({ 'message': 'pending' });
 });
 
 app.post('/login', function (req, res) {
@@ -158,13 +170,16 @@ app.post('/login', function (req, res) {
         dbconn.adminCheck(req.body.Username, function (result) {
             IsAdmin = result[0].count2;
             //User is admin
-            console.log(IsAdmin);
+            // console.log(IsAdmin);
             if (loginExists == 0) {
                 res.send({ 'message': 'loginError' });
+                return;
             } else if (loginExists == 1 && IsAdmin == 1) {
                 res.send({ 'message': 'admin' });
+                return;
             } else if (loginExists == 1 && IsAdmin == 0) {
                 res.send({ 'message': 'passenger' });
+                return;
             }
         });
     });
@@ -194,7 +209,7 @@ app.post('/registerAccount', function (req, res) {
                     dbconn.checkBreezecard(random, function (result) {
                         count = result[0].count;
                         if (count == 1) {
-                            console.log('count is 1, random num exists already, generating another');
+                            // console.log('count is 1, random num exists already, generating another');
                             random = generateBreezecard();
                         }
                     });
@@ -225,7 +240,7 @@ app.post('/registerAccount', function (req, res) {
                 dbconn.checkBreezecard(req.body.BreezecardNum, function (result) {
                     var count = result[0].count;
                     if (count == 1) {
-                        console.log('count is 1, user entered a breezenum already in database, generating random num');
+                        // console.log('count is 1, user entered a breezenum already in database, generating random num');
                         var random = generateBreezecard();
                         dbconn.createConflict(req.body.Username, req.body.BreezecardNum, function (err) {
                             if (err) {
@@ -248,8 +263,10 @@ app.post('/registerAccount', function (req, res) {
                         dbconn.registerBreezecard(req.body.BreezecardNum, req.body.Username, function (result) {
                             if (err) {
                                 res.send({ 'message': 'breezecardError' });
+                                return;
                             } else {
                                 res.send({ 'message': 'success' });
+                                return;
                             }
                         });
                     }
