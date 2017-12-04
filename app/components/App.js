@@ -31,23 +31,23 @@ var LogIn = React.createClass({
 	    	<button onClick={this.nAdminFunctionality}>Go To Admin Functionality</button> <br />
 	    	</center>
     	</div>
-    	); 
+    	);
 	},
-	
+
 	userChange : function(e) {
 		this.setState({ userName: e.target.value} );
 	},
 	passChange : function(e) {
 		this.setState({ password: e.target.value} );
 	},
-	
-	
+
+
 	login: function() {
 
 		if (this.state.userName == '' || this.state.password == '') {
 			alert('Please fill out all non-optional fields');
 			return;
-		} 
+		}
 		fetch(server + '/login', {
 			method: 'post',
 			headers: {'Content-Type': 'application/json'},
@@ -91,7 +91,7 @@ var Registration = React.createClass({
 			  <input type="password" onChange={this.passChange}/><br />
 			  <label>Confirm Password: </label>
 			  <input type="password" onChange={this.confirmPassChange} /><br />
-			  
+
 			  <h3>Breeze Card</h3>
 			  <input type="radio" name="UseBreezeCard" value="old" checked={this.state.type!='new'} onChange={this.typeChange}/><label>Use my existing Breeze Card</label><br />
 			  <label>Card Number: </label>
@@ -102,13 +102,13 @@ var Registration = React.createClass({
 	        <br />
 
 	    	<button onClick={this.register}>Create Account</button>
-	    	<button onClick={this.nLogin}>Back</button> 
+	    	<button onClick={this.nLogin}>Back</button>
 	    	</center>
 
     	</div>
-    	); 
+    	);
 	},
-	
+
 	userChange : function(e) {
 		this.setState({ userName: e.target.value} );
 	},
@@ -158,10 +158,6 @@ var Registration = React.createClass({
 					alert('The username you inputed already exists!');
 				} else if (data.message == 'emailError') {
 					alert('The email you inputed already exists!');
-				} else if (data.message == 'breezecardError') {
-					alert('The breezecard you entered already exists!');
-				} else if (data.message == 'conflictError') {
-					alert('The Conflict already exists!');
 				} else if (data.message == 'sameBreezecard') {
 					alert('You entered in an existing Breezecard, suspending it, and generating new Breezecard');
 					showPassengerFunctionality();
@@ -170,10 +166,10 @@ var Registration = React.createClass({
 				}
             });
 	},
-	
+
 	nPassengerFunctionality : function() { showPassengerFunctionality(); },
 	nLogin : function() { showLogIn(); }
-	
+
 });
 
 var PassengerFunctionality = React.createClass({
@@ -296,7 +292,7 @@ var TripHistory = React.createClass({
 
 var AdminFunctionality = React.createClass({
     render : function() { return (
-        <div className="AdminFunctionality"> 
+        <div className="AdminFunctionality">
 		<center>
 	    	<p>Admin Functionality</p>
 	    	<button onClick={this.nBreezecardManagement}>Go To Breezecard Management</button> <br /> <br />
@@ -543,7 +539,7 @@ var SuspendedCards = React.createClass({
 						accessor: 'editButton',
 						Cell: (row) => (
 							<div>
-								<input type="radio" name="ownertype" value="select" 
+								<input type="radio" name="ownertype" value="select"
 										onClick={() => this.selectRow(row)}/>
 							</div>
 						),
@@ -556,11 +552,11 @@ var SuspendedCards = React.createClass({
 			];
 			return { columns: oColumns, data: [], selectedRow: null };
 		},
-		
+
 		selectRow : function(row) {
 			this.setState( {selectedRow: row.original} );
 		},
-		
+
 		componentDidMount : function() {
 			fetch(server + "/suspendedCardsData")
 			.then(response => response.json())
@@ -573,7 +569,7 @@ var SuspendedCards = React.createClass({
 				.then(data => this.setState({ data: data })
 				);
 		},
-	  	render : function() { 
+	  	render : function() {
 	  		return (
 		    	<div class="SuspensedCardManagement">
 			    	<h1>Suspended Cards</h1>
@@ -593,7 +589,7 @@ var SuspendedCards = React.createClass({
 		    	</div>
 	    	);
 		},
-	changeNewOwner : function() { 
+	changeNewOwner : function() {
 		if (!this.state.selectedRow) {
 			alert('You need to choose a Breezecard before you can assign it.');
 		} else {
@@ -614,7 +610,7 @@ var SuspendedCards = React.createClass({
 			}).then(data => this.refreshState() );
 		}
 	},
-	changePrevOwner : function() { 
+	changePrevOwner : function() {
 		if (!this.state.selectedRow) {
 			alert('You need to choose a Breezecard before you can assign it.');
 		} else {
@@ -820,11 +816,11 @@ var StationManagement = React.createClass({
                 <h1>Station Listing</h1>
 				<div style={{width: "250px"}}>
 				<p>Sort by:</p>
-				<Dropdown options={stationManagementSortOptions} 
-						onChange={this.sortChange} 
+				<Dropdown options={stationManagementSortOptions}
+						onChange={this.sortChange}
 						value={this.state.sort}/>
                 <text>Sort Descending?</text>
-				<input type="checkbox" name="descending_checkbox" id="descending_checkbox" 
+				<input type="checkbox" name="descending_checkbox" id="descending_checkbox"
 						onClick={this.descendingChange} />
 				<br /><button onClick={this.updateSort}>Update Sort</button>
             </div>

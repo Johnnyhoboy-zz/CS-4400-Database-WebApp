@@ -146,13 +146,11 @@ var suspendedCardsData = function suspendedCardsData(callback) {
     });
 };
 
-var updateOwner = function updateOwner(Username, BreezeCardNum, callback) {
+var updateOwner = function updateOwner(Username, OldName, BreezeCardNum, callback) {
     var sql = "UPDATE Breezecard SET BelongsTo= ? WHERE BreezecardNum=?";
-    conn.query(sql, [Username, BreezeCardNum], function (err, result, fields) {
-        if (err) throw err;
-    });
-    sql = "DELETE FROM Conflict WHERE Username = ?";
-    conn.query(sql, [Username], function (err, result, fields) {
+    conn.query(sql, [Username, BreezeCardNum]);
+    sql = "DELETE FROM Conflict WHERE (Username = ? OR Username = ?) AND BreezecardNum = ?";
+    conn.query(sql, [Username, OldName, BreezeCardNum], function (err, result, fields) {
         if (err) throw err;
         callback(result);
     });

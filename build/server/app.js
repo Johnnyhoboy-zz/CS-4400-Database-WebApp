@@ -142,20 +142,15 @@ app.get('/suspendedCardsData', function (req, res) {
 
 app.post('/updateOwner', function (req, res) {
 
-    dbconn.updateOwner(req.body.Username, req.body.BreezecardNum, function (result) {
+    dbconn.updateOwner(req.body.Username, req.body.otherUser, req.body.BreezecardNum, function (result) {
         //Check if old owner or new owner still has a breezecard, if not then generate new one
-        dbconn.checkBreezecardOwnership(req.body.Username, function (result) {
-            var count = result[0].count;
-            if (count == 0) {
-                insertBreezecard(req.body.Username);
-            }
-        });
         dbconn.checkBreezecardOwnership(req.body.otherUser, function (result) {
             var count = result[0].count;
             if (count == 0) {
                 insertBreezecard(req.body.otherUser);
             }
         });
+        res.send({ 'message': 'success' });
     });
 });
 
@@ -243,31 +238,13 @@ app.post('/registerAccount', function (req, res) {
                         // console.log('count is 1, user entered a breezenum already in database, generating random num');
                         var random = generateBreezecard();
                         dbconn.createConflict(req.body.Username, req.body.BreezecardNum, function (err) {
-                            if (err) {
-                                res.send({ 'message': 'conflictError' });
-                                return;
-                            } else {
-                                res.send({ 'message': 'sameBreezecard' });
-                                return;
-                            }
-                        });
-                        dbconn.registerBreezecard(random, req.body.Username, function (err) {
-                            if (err) {
-                                res.send({ 'message': 'breezecardError' });
-                                return;
-                            } else res.send({ 'message': 'success' });
-                            return;
+                            res.send({ 'message': 'sameBreezecard' });
+                            insertBreezecard(req.body.Username);
                         });
                     } else {
                         //use user's unique breezecard
                         dbconn.registerBreezecard(req.body.BreezecardNum, req.body.Username, function (result) {
-                            if (err) {
-                                res.send({ 'message': 'breezecardError' });
-                                return;
-                            } else {
-                                res.send({ 'message': 'success' });
-                                return;
-                            }
+                            res.send('message');
                         });
                     }
                 });
