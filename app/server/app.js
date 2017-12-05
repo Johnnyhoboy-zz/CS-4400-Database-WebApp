@@ -344,7 +344,7 @@ app.post('/addCard', (req, res) => {
         var count = result[0].count;
             if (count == 1) {
                 var random = generateBreezecard();
-                dbconn.createConflict(req.body.Username, req.body.BreezecardNum, function (err) {
+                dbconn.createConflict(req.body.username, req.body.BreezecardNum, function (err) {
                     res.send({'message':'sameBreezecard'});
                 });
             } else {
