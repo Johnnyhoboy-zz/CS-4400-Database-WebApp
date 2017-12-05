@@ -335,6 +335,11 @@ var updateHistory = function updateHistory(username, start, end, sort, desc, cal
     });
 };
 
+var deleteIfConflict = function deleteIfConflict(BreezecardNum) {
+    var sql = "DELETE FROM Conflict WHERE BreezecardNum = ?";
+    conn.query(sql, [BreezecardNum], function (err, result, fields) {});
+};
+
 var test = function test() {
     console.log('test successful');
 };
@@ -378,3 +383,4 @@ module.exports.endStationListData = endStationListData;
 module.exports.removeCard = removeCard;
 module.exports.checkBreezecardOwnership = checkBreezecardOwnership;
 module.exports.passengerCards = passengerCards;
+module.exports.deleteIfConflict = deleteIfConflict;

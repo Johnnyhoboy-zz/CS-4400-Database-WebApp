@@ -92,8 +92,11 @@ app.js
 	line 277 - Change to
 		chosenStarting = this.state.current;
 	line 325 - Change to
-		}).then(()=>response.json()).then(data => this.setState({value : data.Value}, ()=>this.componentDidMount()));
-	
+		}).then((response)=>response.json()).then(data => this.setState({value : data.Value}, ()=>this.componentDidMount()));
+	line 180 - Change endData to data
+	line 121 - Insert
+		dbconn.deleteIfConflict(req.body.cardNumber);
+
 dbconnection.js
 	line 283 - Change to 
 		var inProgress = function(breezecard, callback) {
@@ -112,3 +115,11 @@ dbconnection.js
 	line 386 - Change to
 		callback(err);
 	line 392 - Change WHERE to AND
+	anywhere - add var
+		var deleteIfConflict = function(BreezecardNum) {
+	    var sql = "DELETE FROM Conflict WHERE BreezecardNum = ?";
+	    conn.query(sql, [BreezecardNum], function(err, result, fields) {
+	    });
+		};
+	anywhere - add
+		module.exports.deleteIfConflict = deleteIfConflict;

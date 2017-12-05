@@ -118,6 +118,7 @@ app.post('/adminBreezecardTransfer', (req, res) => {
                 if (count == 1) {
                     insertBreezecard(req.body.originalOwner);
                 }
+                dbconn.deleteIfConflict(req.body.cardNumber);
                 res.send({'message':'success'});
             } else {
                 res.send({'message':'error'});

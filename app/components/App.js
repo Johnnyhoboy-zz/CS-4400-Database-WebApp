@@ -177,7 +177,7 @@ var PassengerFunctionality = React.createClass({
 	componentDidMount : function() {
 		fetch(server + "/stationListData")
 		.then(response => response.json())
-		.then(data => this.setState({ endData: data })
+		.then(data => this.setState({ data: data })
 		);
 
 		fetch(server + '/passengerCards',
