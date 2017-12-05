@@ -196,7 +196,7 @@ var PassengerFunctionality = React.createClass({
 		.then(data => this.setState({ cardData: data })
 		);
 
-		fetch(server + "/inProgress", {method:"post",headers:{'Content-Type':'application/json'},body: JSON.stringify({"breezecard":this.state.chosenCard})})
+		fetch(server + "/inProgress", {method:"post",headers:{'Content-Type':'application/json'},body: JSON.stringify({"breezecard":this.state.selectedCard})})
 		.then(response => response.json())
 		.then(data => { this.setState({ count: data.count }, function () {
 				if(this.state.count > 0) {
