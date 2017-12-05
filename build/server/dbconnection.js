@@ -328,7 +328,7 @@ var addCard = function addCard(breezecard, username, callback) {
 };
 
 var updateHistory = function updateHistory(username, start, end, sort, desc, callback) {
-    var sql = "SELECT StartTime, StartsAt, EndsAt, Tripfare, BreezecardNum FROM Trip WHERE Trip.BreezecardNum IN (SELECT BreezecardNum FROM Breezecard AS b WHERE b.BelongsTo=?)" + " AND (StartTime BETWEEN ? AND ?) ORDER BY " + sort + ' ' + desc + ';';
+    var sql = "SELECT StartTime, StartsAt, EndsAt, Tripfare, BreezecardNum FROM Trip WHERE Trip.BreezecardNum IN (SELECT BreezecardNum FROM Breezecard AS b WHERE b.BelongsTo=?)" + "AND (StartTime BETWEEN ?AND ?) AND Trip.BreezecardNum NOT IN (SELECT BreezecardNum FROM Conflict) ORDER BY " + sort + " " + desc;
     conn.query(sql, [username, start, end], function (err, result, fields) {
         if (err) throw err;
         callback(result);
