@@ -335,7 +335,19 @@ app.get('/tripHistoryData', (req, res) => {
 });
 
 app.post('/addCard', (req, res) => {
-    dbconn.addCard(req.body.BreezecardNum, req.body.username, function(msg) { res.send({'message': msg})});
+    dbconn.checkBreezecard(req.body.BreezecardNum, function(result) {
+        var count = result[0].count;
+            if (count == 1) {
+                var random = generateBreezecard();
+                dbconn.createConflict(req.body.Username, req.body.BreezecardNum, function (err) {
+                    res.send({'message':'sameBreezecard'});
+                });
+            } else {
+                dbconn.registerBreezecard(req.body.BreezecardNum, req.body.Username, function(result) {
+                    res.send({'message':'success'});
+                });
+            }
+        });
 });
 
 app.post('/addValue', (req, res) => {
@@ -358,7 +370,7 @@ app.post('/updateHistory', (req, res) => {
          });
     });
 
-app.get('/inProgress', (req, res) => {
+app.post('/inProgress', (req, res) => {
     dbconn.inProgress(req.body.breezecard, function(result) {
         console.log('progress ' + result[0].count);
         res.send(result[0]);

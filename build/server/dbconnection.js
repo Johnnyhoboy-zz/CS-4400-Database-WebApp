@@ -282,7 +282,7 @@ var endStationListData = function endStationListData(start, callback) {
 };
 
 var passengerCards = function passengerCards(username, callback) {
-    var sql = "SELECT BreezecardNum, Value FROM Breezecard WHERE BelongsTo=?";
+    var sql = "SELECT DISTINCT b.BreezecardNum, b.Value FROM Breezecard as b WHERE b.BreezecardNum NOT IN (SELECT BreezecardNum FROM Conflict) AND BelongsTo = ?";
     conn.query(sql, [username], function (err, result, fields) {
         if (err) throw err;
         callback(result);
@@ -290,7 +290,7 @@ var passengerCards = function passengerCards(username, callback) {
 };
 
 var passengerCardData = function passengerCardData(username, sort, desc, callback) {
-    var sql = "SELECT BreezecardNum, Value FROM Breezecard WHERE BelongsTo=? ORDER BY " + sort + ' ' + desc + ';';
+    var sql = "SELECT DISTINCT b.BreezecardNum, b.Value FROM Breezecard as b WHERE b.BreezecardNum NOT IN (SELECT BreezecardNum FROM Conflict) AND BelongsTo = ? ORDER BY " + sort + ' ' + desc + ';';
     console.log(username);
     conn.query(sql, [username], function (err, result, fields) {
         if (err) throw err;

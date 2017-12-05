@@ -36,6 +36,23 @@ app.js
 		res.send({ 'message': 'success' });
 	line 362 - Change to
 		dbconn.inProgress(req.body.breezecard, function(result) {
+	line 337 - Replace addCard with
+			app.post('/addCard', (req, res) => {
+	    	dbconn.checkBreezecard(req.body.BreezecardNum, function(result) {
+	        var count = result[0].count;
+	            if (count == 1) {
+	                var random = generateBreezecard();
+	                dbconn.createConflict(req.body.Username, req.body.BreezecardNum, function (err) {
+	                    res.send({'message':'sameBreezecard'});
+	                });
+	            } else {
+	                dbconn.registerBreezecard(req.body.BreezecardNum, req.body.Username, function(result) {
+	                    res.send({'message':'success'});
+	                });
+	            }
+	        });
+		});
+	line 373 - Change get to post
 dbconnection.js
 	line 283 - Change to 
 		var inProgress = function(breezecard, callback) {
@@ -45,6 +62,10 @@ dbconnection.js
 		conn.query(sql, [breezecard], function(err, result, fields) {
 	line 305 - Change WHERE Name=? to WHERE StopID=?
 	line 306 - CHANGE [start, breezecard] to [start, breezecard, start]
+	line 346 - Change to
+		var sql = "SELECT DISTINCT b.BreezecardNum, b.Value FROM Breezecard as b WHERE b.BreezecardNum NOT IN (SELECT BreezecardNum FROM Conflict) AND BelongsTo = ?";
+	line 354 - Change to
+		var sql = "SELECT DISTINCT b.BreezecardNum, b.Value FROM Breezecard as b WHERE b.BreezecardNum NOT IN (SELECT BreezecardNum FROM Conflict) AND BelongsTo = ? ORDER BY " + sort + ' ' + desc + ';';
 	line 383 - Change to
 		var addCard = function(breezecard, username, callback) {
 	line 386 - Change to
