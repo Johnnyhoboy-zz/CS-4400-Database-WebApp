@@ -167,19 +167,14 @@ var Registration = React.createClass({
 });
 
 var chosenCard = '';
-var chosenStarting= '';
+var chosenStarting= {};
 var chosenEnding = '';
 var PassengerFunctionality = React.createClass({
 
 	getInitialState : function() {
-		return { data: [], cardData: [], endData: [],selectedCard: chosenCard, selectedStart: chosenStarting, selectedEnd: chosenEnding, value: '', fare: '', prompt: 'Start Trip', disable: '', count: '', current: {}, currentE: {} }
+		return { data: [], cardData: [], endData: [],selectedCard: chosenCard, selectedStart: chosenStarting, selectedEnd: chosenEnding, value: '', fare: '', prompt: 'Start Trip', disable: '', count: '', current: chosenStarting, currentE: {} }
 	},
 	componentDidMount : function() {
-		fetch(server + "/stationListData")
-		.then(response => response.json())
-		.then(data => { this.setState({ data: data });}
-		);
-
 		fetch(server + "/stationListData")
 		.then(response => response.json())
 		.then(data => this.setState({ endData: data })
@@ -196,11 +191,28 @@ var PassengerFunctionality = React.createClass({
 		.then(data => this.setState({ cardData: data })
 		);
 
-		fetch(server + "/inProgress", {method:"post",headers:{'Content-Type':'application/json'},body: JSON.stringify({"breezecard":this.state.selectedCard})})
+		fetch(server + "/inProgress", {method:"post",headers:{'Content-Type':'application/json'},body: JSON.stringify		({"breezecard":this.state.selectedCard})})
 		.then(response => response.json())
 		.then(data => { this.setState({ count: data.count }, function () {
 				if(this.state.count > 0) {
-					this.setState({ prompt: 'In Progress', disable: 'true'} );
+					this.setState({ prompt: 'In Progress', disable: 'true'}, function() {
+						if(prompt == 'In Progress') {
+							fetch(server + "/stationListData")
+							.then(response => response.json())
+							.then(data => this.setState({ endData: data })
+							);
+						} else {
+							fetch(server + '/endStationListData',
+        						{method: 'post',
+         						headers: {'Content-Type': 'application/json'},
+        							body: JSON.stringify({
+             								"Start": this.state.current.value,
+         							})
+        						}).then(response => response.json())
+        							.then(data => this.setState({endData : data, currentE: {}})
+        							);
+						}
+					} );
 				}
 			});}
 		);
@@ -228,7 +240,7 @@ var PassengerFunctionality = React.createClass({
 	    	<br/>
 	    	<div style={{width: "250px"}}>
 	    		<label>Start At </label>
-	    		<Dropdown options={this.state.data} onChange={this.selectedStart} value={this.state.current.label} />
+	    		<Dropdown disabled={this.state.disable} options={this.state.data} onChange={this.selectedStart} value={this.state.current.label} />
 	    		<a href="#" onClick={this.startTrip}>{this.state.prompt}</a>
 			</div>
 			<br/>
@@ -262,7 +274,7 @@ var PassengerFunctionality = React.createClass({
  
  	selectedStart : function(e) {
 		this.setState({ selectedStart: e.value, current: {'value': e.value, 'label': e.label}}, function() {
-		chosenStarting = this.state.selectedStart;
+		chosenStarting = this.state.current;
 		fetch(server + '/getFare',
         {method: 'post',
          headers: {'Content-Type': 'application/json'},
@@ -310,7 +322,7 @@ var PassengerFunctionality = React.createClass({
 				 "Start": this.state.current.value,
 				 "BreezecardNum": this.state.selectedCard,
 			})
-		});
+		}).then(()=>response.json()).then(data => this.setState({value : data.Value}, ()=>this.componentDidMount()));		
 		this.setState({ prompt: 'In Progress', disable: 'true'} );
 	},
 	endTrip : function() {

@@ -28,6 +28,8 @@ App.js
 	line 259 - Change to
 		.then(data => this.setState({value : data.Value}, ()=>this.componentDidMount()));
 	line 199 - Change this.state.chosenCard to this.state.selectedCard
+	line 170 - Change to var chosenStarting= {};
+	line 175 - Change current: {} to current: chosenStarting
 app.js
 	line 338 - Change to
 		dbconn.addCard(req.body.BreezecardNum, req.body.username, function(msg) { res.send({'message': msg})});
@@ -54,6 +56,44 @@ app.js
 	        });
 		});
 	line 373 - Change get to post
+	line 320 - Change to
+		dbconn.startTrip(req.body.Start, req.body.BreezecardNum);
+    		dbconn.getValue(req.body.BreezecardNum, function(result) {
+        		res.send(result[0]);
+    		});
+    REPLACE lines 199-206 with
+    	fetch(server + "/inProgress", {method:"post",headers:{'Content-Type':'application/json'},body: JSON.stringify		({"breezecard":this.state.selectedCard})})
+		.then(response => response.json())
+		.then(data => { this.setState({ count: data.count }, function () {
+				if(this.state.count > 0) {
+					this.setState({ prompt: 'In Progress', disable: 'true'}, function() {
+						if(prompt == 'In Progress') {
+							fetch(server + "/stationListData")
+							.then(response => response.json())
+							.then(data => this.setState({ endData: data })
+							);
+						} else {
+							fetch(server + '/endStationListData',
+        						{method: 'post',
+         						headers: {'Content-Type': 'application/json'},
+        							body: JSON.stringify({
+             								"Start": this.state.current.value,
+         							})
+        						}).then(response => response.json())
+        							.then(data => this.setState({endData : data, currentE: {}})
+        							);
+						}
+					} );
+				}
+			});}
+		);
+	DELETE lines 178-182
+	line 243 - Add disabled={this.state.disable} inside Dropdown tag
+	line 277 - Change to
+		chosenStarting = this.state.current;
+	line 325 - Change to
+		}).then(()=>response.json()).then(data => this.setState({value : data.Value}, ()=>this.componentDidMount()));
+	
 dbconnection.js
 	line 283 - Change to 
 		var inProgress = function(breezecard, callback) {

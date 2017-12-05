@@ -319,6 +319,9 @@ app.post('/passengerCardData', function (req, res) {
 
 app.post('/startTrip', function (req, res) {
     dbconn.startTrip(req.body.Start, req.body.BreezecardNum);
+    dbconn.getValue(req.body.BreezecardNum, function (result) {
+        res.send(result[0]);
+    });
 });
 
 app.post('/endTrip', function (req, res) {
