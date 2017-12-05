@@ -280,9 +280,9 @@ var createConflict = function(Username,BreezecardNum, callback) {
     });
 };
 
-var inProgress = function(callback) {
-    var sql = "SELECT COUNT(*) as count FROM Trip WHERE EndsAt is null";
-    conn.query(sql, function(err, result, fields) {
+var inProgress = function(breezecard, callback) {
+    var sql = "SELECT COUNT(*) as count FROM Trip WHERE BreezecardNum=? AND EndsAt is null";
+    conn.query(sql, [breezecard], function(err, result, fields) {
         if (err) throw err;
         callback(result);
     });
@@ -303,7 +303,7 @@ var startTrip = function(start, breezecard) {
         if (err) throw err;
     });
      sql = "UPDATE Breezecard SET Value = Value - (SELECT EnterFare FROM Station WHERE StopID=?) WHERE BreezecardNum = ?";
-    conn.query(sql, [start, breezecard], function(err, result, fields) {
+    conn.query(sql, [start, breezecard, start], function(err, result, fields) {
         if (err) throw err;
     });
 };
@@ -318,6 +318,7 @@ var getFare = function(start, callback) {
 
 var endTrip = function(end, breezecard) {
     var sql = "UPDATE Trip SET EndsAt = ? WHERE EndsAt is null AND BreezecardNum = ?";
+   // console.log(breezecard);
     conn.query(sql, [end, breezecard], function(err, result, fields) {
         if (err) throw err;
         
@@ -342,7 +343,7 @@ var endStationListData = function(start, callback) {
 };
 
 var passengerCards = function(username, callback) {
-    var sql = "SELECT BreezecardNum, Value FROM Breezecard WHERE BelongsTo=?";
+    var sql = "SELECT DISTINCT b.BreezecardNum, b.Value FROM Breezecard as b WHERE b.BreezecardNum NOT IN (SELECT BreezecardNum FROM Conflict) AND BelongsTo = ?";
     conn.query(sql, [username], function(err, result, fields) {
         if (err) throw err;
         callback(result);
@@ -350,8 +351,8 @@ var passengerCards = function(username, callback) {
 };
 
 var passengerCardData = function(username, sort, desc, callback) {
-    var sql = "SELECT BreezecardNum, Value FROM Breezecard WHERE BelongsTo=? ORDER BY " + sort + ' ' + desc + ';';
-    console.log(username);
+    var sql = "SELECT DISTINCT b.BreezecardNum, b.Value FROM Breezecard as b WHERE b.BreezecardNum NOT IN (SELECT BreezecardNum FROM Conflict) AND BelongsTo = ? ORDER BY " + sort + ' ' + desc + ';';
+    //console.log(username);
     conn.query(sql, [username], function(err, result, fields) {
         if (err) throw err;
         callback(result);
@@ -380,10 +381,10 @@ var tripHistoryData = function(callback) {
     });
 };
 
-var addCard = function(breezecard, username) {
+var addCard = function(breezecard, username, callback) {
     var sql = "INSERT INTO Breezecard(BreezecardNum, Value, BelongsTo) VALUES (?,0,?)";
     conn.query(sql,[breezecard, username], function(err, result, fields) {
-        if (err) throw err;
+        callback(err);
     });
 };
 
