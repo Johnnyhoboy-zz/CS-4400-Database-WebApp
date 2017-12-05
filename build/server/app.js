@@ -135,8 +135,8 @@ app.post('/adminBreezecardTransfer', function (req, res) {
     });
 });
 
-app.get('/suspendedCardsData', function (req, res) {
-    dbconn.suspendedCardsData(function (result) {
+app.post('/suspendedCardsData', function (req, res) {
+    dbconn.suspendedCardsData(req.body.sort, req.body.desc, function (result) {
         res.send(result);
     });
 });

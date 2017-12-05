@@ -844,6 +844,7 @@ var BreezecardManagement = React.createClass({
 });
 
 
+const suspendedOptions = ['Card #', 'Date Suspended']; 
 var SuspendedCards = React.createClass({
 	getInitialState : function() {
 			var oColumns = [
@@ -863,7 +864,7 @@ var SuspendedCards = React.createClass({
 				{ Header: 'Date Suspended', accessor: 'DateTime' },
 				{ Header: 'Previous Owner', accessor: 'BelongsTo'}
 			];
-			return { columns: oColumns, data: [], selectedRow: null };
+			return { columns: oColumns, data: [], selectedRow: null, sort: 'BreezecardNum', descending: '', descendingCheck: false, selected: suspendedOptions[0], };
 		},
 
 		selectRow : function(row) {
@@ -871,21 +872,43 @@ var SuspendedCards = React.createClass({
 		},
 
 		componentDidMount : function() {
-			fetch(server + "/suspendedCardsData")
-			.then(response => response.json())
-			.then(data => this.setState({ data: data })
-			);
+			fetch(server + "/suspendedCardsData", {
+					method: 'post',
+					headers: {'Content-Type': 'application/json'},
+					body: JSON.stringify({
+						"sort": this.state.sort,
+						"desc" : this.state.descending
+					})
+				}).then(function(response) {
+					return response.json();
+				}).then(data => this.setState({ data: data }) );
 		},
 		refreshState : function() {
-				fetch(server + "/suspendedCardsData")
-				.then(response => response.json())
-				.then(data => this.setState({ data: data })
-				);
+				fetch(server + "/suspendedCardsData", {
+					method: 'post',
+					headers: {'Content-Type': 'application/json'},
+					body: JSON.stringify({
+						"sort": this.state.sort,
+						"desc" : this.state.descending
+					})
+				}).then(function(response) {
+					return response.json();
+				}).then(data => this.setState({ data: data }) );
 		},
 	  	render : function() {
+	  		const defaultOption = this.state.selected;
 	  		return (
 		    	<div class="SuspensedCardManagement">
 			    	<h1>Suspended Cards</h1>
+			    	<div style={{width: "250px"}}>
+                		<text>Order By:</text>
+                		<Dropdown options={suspendedOptions} onChange={this.sortChange} value={defaultOption} />
+                	<text>
+                    	Sort Descending?
+                	</text>
+               		<input type="checkbox" name="descending_checkbox" id="descending_checkbox" onClick={this.descendingChange} checked={this.state.descendingCheck} />
+            		<button onClick={this.refreshState}>Update</button>
+            		</div>
 			    	<ReactTable
 					    data={this.state.data}
 					    columns={this.state.columns}
@@ -944,6 +967,22 @@ var SuspendedCards = React.createClass({
 			}).then(data => this.refreshState() );
 		}
 	},
+	descendingChange: function(e) {
+        if(e.target.checked) {
+            this.setState({descending: 'DESC', descendingCheck: true});
+        } else {
+            this.setState({descending: '', descendingCheck: false});
+        }
+    },
+    sortChange: function(e) {
+        if (e.value == suspendedOptions[0]) {
+            this.setState({sort: 'BreezecardNum'});
+        } else {
+            this.setState({sort: 'DateTime'});
+        }
+        this.setState({selected: e});
+
+    },
 	nAdminFunctionality : function() { showAdminFunctionality(); }
 });
 

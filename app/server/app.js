@@ -128,11 +128,12 @@ app.post('/adminBreezecardTransfer', (req, res) => {
     })
 });
 
-app.get('/suspendedCardsData', (req, res) => {
-    dbconn.suspendedCardsData( function(result) {
+app.post('/suspendedCardsData', (req, res) => {
+    dbconn.suspendedCardsData(req.body.sort, req.body.desc, function(result) {
         res.send(result);
     });
 });
+
 
 app.post('/updateOwner', (req, res) => {
     

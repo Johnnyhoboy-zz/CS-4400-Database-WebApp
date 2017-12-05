@@ -138,8 +138,8 @@ var passengerFlowData = function passengerFlowData(start, end, sort, desc, callb
     });
 };
 
-var suspendedCardsData = function suspendedCardsData(callback) {
-    var sql = "SELECT * FROM Breezecard NATURAL JOIN Conflict";
+var suspendedCardsData = function suspendedCardsData(sort, desc, callback) {
+    var sql = "SELECT * FROM Breezecard NATURAL JOIN Conflict ORDER BY " + sort + ' ' + desc;
     conn.query(sql, function (err, result, fields) {
         if (err) throw err;
         callback(result);

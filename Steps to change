@@ -30,38 +30,7 @@ App.js
 	line 199 - Change this.state.chosenCard to this.state.selectedCard
 	line 170 - Change to var chosenStarting= {};
 	line 175 - Change current: {} to current: chosenStarting
-app.js
-	line 338 - Change to
-		dbconn.addCard(req.body.BreezecardNum, req.body.username, function(msg) { res.send({'message': msg})});
-	line 354 - Change to 
-		dbconn.updateHistory(req.body.username, start, end, req.body.sort, req.body.desc, function(result) {
-	line 343 - Add new line after current line 342
-		res.send({ 'message': 'success' });
-	line 362 - Change to
-		dbconn.inProgress(req.body.breezecard, function(result) {
-	line 337 - Replace addCard with
-			app.post('/addCard', (req, res) => {
-	    	dbconn.checkBreezecard(req.body.BreezecardNum, function(result) {
-	        var count = result[0].count;
-	            if (count == 1) {
-	                var random = generateBreezecard();
-	                dbconn.createConflict(req.body.Username, req.body.BreezecardNum, function (err) {
-	                    res.send({'message':'sameBreezecard'});
-	                });
-	            } else {
-	                dbconn.registerBreezecard(req.body.BreezecardNum, req.body.Username, function(result) {
-	                    res.send({'message':'success'});
-	                });
-	            }
-	        });
-		});
-	line 373 - Change get to post
-	line 320 - Change to
-		dbconn.startTrip(req.body.Start, req.body.BreezecardNum);
-    		dbconn.getValue(req.body.BreezecardNum, function(result) {
-        		res.send(result[0]);
-    		});
-    REPLACE lines 199-206 with
+	REPLACE lines 199-206 with
     	fetch(server + "/inProgress", {method:"post",headers:{'Content-Type':'application/json'},body: JSON.stringify		({"breezecard":this.state.selectedCard})})
 		.then(response => response.json())
 		.then(data => { this.setState({ count: data.count }, function () {
@@ -94,8 +63,42 @@ app.js
 	line 325 - Change to
 		}).then((response)=>response.json()).then(data => this.setState({value : data.Value}, ()=>this.componentDidMount()));
 	line 180 - Change endData to data
+	make SuspendedCards sortable
+
+app.js
+	line 338 - Change to
+		dbconn.addCard(req.body.BreezecardNum, req.body.username, function(msg) { res.send({'message': msg})});
+	line 354 - Change to 
+		dbconn.updateHistory(req.body.username, start, end, req.body.sort, req.body.desc, function(result) {
+	line 343 - Add new line after current line 342
+		res.send({ 'message': 'success' });
+	line 362 - Change to
+		dbconn.inProgress(req.body.breezecard, function(result) {
+	line 337 - Replace addCard with
+			app.post('/addCard', (req, res) => {
+	    	dbconn.checkBreezecard(req.body.BreezecardNum, function(result) {
+	        var count = result[0].count;
+	            if (count == 1) {
+	                var random = generateBreezecard();
+	                dbconn.createConflict(req.body.Username, req.body.BreezecardNum, function (err) {
+	                    res.send({'message':'sameBreezecard'});
+	                });
+	            } else {
+	                dbconn.registerBreezecard(req.body.BreezecardNum, req.body.Username, function(result) {
+	                    res.send({'message':'success'});
+	                });
+	            }
+	        });
+		});
+	line 373 - Change get to post
+	line 320 - Change to
+		dbconn.startTrip(req.body.Start, req.body.BreezecardNum);
+    		dbconn.getValue(req.body.BreezecardNum, function(result) {
+        		res.send(result[0]);
+    		});
 	line 121 - Insert
 		dbconn.deleteIfConflict(req.body.cardNumber);
+	line 132 - Change to dbconn.suspendedCardsData(req.body.sort, req.body.desc, function(result) {
 
 dbconnection.js
 	line 283 - Change to 
@@ -115,11 +118,14 @@ dbconnection.js
 	line 386 - Change to
 		callback(err);
 	line 392 - Change WHERE to AND
-	anywhere - add var
+	end - add var
 		var deleteIfConflict = function(BreezecardNum) {
 	    var sql = "DELETE FROM Conflict WHERE BreezecardNum = ?";
 	    conn.query(sql, [BreezecardNum], function(err, result, fields) {
 	    });
 		};
-	anywhere - add
+	end - add
 		module.exports.deleteIfConflict = deleteIfConflict;
+	lines 200-201 - change to
+		var suspendedCardsData = function(sort, desc, callback) {
+    	var sql = "SELECT * FROM Breezecard NATURAL JOIN Conflict ORDER BY " + sort + ' ' + desc;    
