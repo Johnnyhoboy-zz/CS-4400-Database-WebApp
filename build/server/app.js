@@ -185,37 +185,41 @@ app.post('/registerAccount', function (req, res) {
 
     //User requests new breezecard, generate random one not in database
     if (req.body.Type == "new") {
-        dbconn.registerUser(req.body.Username, hashedPass, function (err) {
-            if (err) {
-                res.send({ 'message': 'userError' });
-                return;
-            }
-            dbconn.registerPassenger(req.body.Username, req.body.Email, function (err) {
-                if (err) {
-                    res.send({ 'message': 'emailError' });
-                    return;
-                }
-
-                var random = generateBreezecard();
-                var count = 0;
-                do {
-                    dbconn.checkBreezecard(random, function (result) {
-                        count = result[0].count;
-                        if (count == 1) {
-                            // console.log('count is 1, random num exists already, generating another');
-                            random = generateBreezecard();
-                        }
-                    });
-                } while (count == 1);
-
-                dbconn.registerBreezecard(random, req.body.Username, function (err) {
+        dbconn.checkEmail(req.body.Email, function (result) {
+            if (result[0].count == 0) {
+                dbconn.registerUser(req.body.Username, hashedPass, function (err) {
                     if (err) {
-                        res.send({ 'message': 'breezecardError' });
+                        res.send({ 'message': 'userError' });
                         return;
-                    } else res.send({ 'message': 'success' });
-                    return;
+                    }
+                    dbconn.registerPassenger(req.body.Username, req.body.Email, function (err) {
+                        if (err) {
+                            res.send({ 'message': 'emailError' });
+                            return;
+                        }
+
+                        var random = generateBreezecard();
+                        var count = 0;
+                        do {
+                            dbconn.checkBreezecard(random, function (result) {
+                                count = result[0].count;
+                                if (count == 1) {
+                                    // console.log('count is 1, random num exists already, generating another');
+                                    random = generateBreezecard();
+                                }
+                            });
+                        } while (count == 1);
+
+                        dbconn.registerBreezecard(random, req.body.Username, function (err) {
+                            if (err) {
+                                res.send({ 'message': 'breezecardError' });
+                                return;
+                            } else res.send({ 'message': 'success' });
+                            return;
+                        });
+                    });
                 });
-            });
+            }
         });
     } else {
         var random = 0;

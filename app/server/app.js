@@ -183,6 +183,8 @@ app.post('/registerAccount', (req, res) => {
     
         //User requests new breezecard, generate random one not in database
         if(req.body.Type == "new") {
+            dbconn.checkEmail(req.body.Email, function(result) {
+                if (result[0].count == 0) {
             dbconn.registerUser(req.body.Username, hashedPass, function(err) {
                 if (err) {
                     res.send({'message' : 'userError'});
@@ -216,6 +218,8 @@ app.post('/registerAccount', (req, res) => {
                     });
                 });
             });
+        }
+        });
         } else {
             var random = 0;
             //User wants to enter their own breezecard, check if conflict then generate random breezecard

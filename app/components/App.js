@@ -1351,7 +1351,11 @@ var CreateStation = React.createClass({
         if (this.state.id == '' || this.state.name == '' || this.state.fare == '') {
             alert('Please fill out all non-optional fields');
             return;
-        }
+		}
+		if (parseInt(this.state.fare) > 50 || parseInt(this.state.fare) < 0) {
+			alert('Fare must be between $0 and $50');
+			return;
+		}
         if (this.state.message != '')
             this.setState( { message: '' });
         fetch(server + '/createStation', {

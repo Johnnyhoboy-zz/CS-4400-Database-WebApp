@@ -149,8 +149,8 @@ var suspendedCardsData = function suspendedCardsData(sort, desc, callback) {
 var updateOwner = function updateOwner(Username, OldName, BreezeCardNum, callback) {
     var sql = "UPDATE Breezecard SET BelongsTo= ? WHERE BreezecardNum=?";
     conn.query(sql, [Username, BreezeCardNum]);
-    sql = "DELETE FROM Conflict WHERE (Username = ? OR Username = ?) AND BreezecardNum = ?";
-    conn.query(sql, [Username, OldName, BreezeCardNum], function (err, result, fields) {
+    sql = "DELETE FROM Conflict WHERE BreezecardNum = ?";
+    conn.query(sql, [BreezeCardNum], function (err, result, fields) {
         if (err) throw err;
         callback(result);
     });
@@ -207,7 +207,7 @@ var registerBreezecard = function registerBreezecard(BreezecardNum, Username, ca
 };
 
 var checkBreezecard = function checkBreezecard(BreezecardNum, callback) {
-    var sql = "SELECT COUNT(*) as count FROM Breezecard as b WHERE b.BreezecardNum = ?";
+    var sql = "SELECT COUNT(*) as count FROM Breezecard as b WHERE b.BreezecardNum = ? AND b.BelongsTo NOT IS NULL";
     conn.query(sql, [BreezecardNum], function (err, result, fields) {
         if (err) throw err;
         callback(result);
@@ -340,10 +340,18 @@ var deleteIfConflict = function deleteIfConflict(BreezecardNum) {
     conn.query(sql, [BreezecardNum], function (err, result, fields) {});
 };
 
+var checkEmail = function checkEmail(email) {
+    var sql = "SELECT COUNT(*) FROM Passenger WHERE Email = ?";
+    conn.query(sql, [email], function (err, result, fields) {
+        callback(result);
+    });
+};
+
 var test = function test() {
     console.log('test successful');
 };
 
+module.exports.checkEmail = checkEmail;
 module.exports.test = test;
 module.exports.stationManagementData = stationManagementData;
 module.exports.createStation = createStation;
